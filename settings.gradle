@@ -1,0 +1,4 @@
+rootProject.name = 'openISBT'
+include 'openISBTBackend'
+include 'openISBTFrontend'
+

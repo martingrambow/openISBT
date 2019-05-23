@@ -1,0 +1,27 @@
+.floatingBox {
+  float:left;
+  padding-left: 20px;
+  padding-bottom: 20px;
+}
+
+.shortBox {
+  width: 5%;
+}
+
+.fillBox {
+  width: 90%;
+}
+
+.leftbox {
+  padding-top: 20px;
+  clear:both;
+}
+
+p {
+  margin: auto;
+  padding-bottom: 10px;
+}
+
+.seperator {
+  clear: both
+}

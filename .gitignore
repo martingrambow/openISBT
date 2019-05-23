@@ -1,0 +1,7 @@
+build
+/openISBTBackend/out
+/openISBTFrontend/build
+/openISBTFrontend/out
+/openISBTFrontend/web
+/.gradle
+/.idea

@@ -1,0 +1,23 @@
+{
+  "totalPatternRequests": 1000,
+  "patterns": [
+    {
+      "name": "CRE",
+      "sequence": [
+        {
+          "operation": "CREATE",
+          "output": "item",
+          "wait": 15
+        },
+        {
+          "operation": "READ",
+          "input": "item",
+          "output": "item",
+          "wait": 5
+        }
+      ],
+      "weight": 10
+    }],
+
+  "manualDecision": true
+}

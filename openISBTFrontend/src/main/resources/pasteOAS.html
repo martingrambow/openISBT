@@ -1,0 +1,83 @@
+<!DOCTYPE html> <!-- index.html -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Paste OAS File</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/pasteoas.css">
+</head>
+<body>
+
+<div class="bar" id="topnav">
+    <a class="active" href="index.html">OpenISBT</a>
+    <div class="topnav-right">
+        <a href="moreInfos.html">More Infos</a>
+        <a href="contact.html">Contact</a>
+    </div>
+</div>
+
+<div class="content" id="content" name="pasteOAS">
+
+    <div >
+        <div class="stepbar" id="steps">
+            <a class="active step">1) Start</a>
+            <a class="inactive step">2) Pattern</a>
+            <a class="inactive step">3) Check</a>
+            <a class="inactive step">4) Generate</a>
+            <a class="inactive step">5) Run</a>
+            <a class="inactive step">6) Results</a>
+        </div>
+    </div>
+
+    <hr class="stepbarseparation">
+
+    <div class="leftbox">
+        <div class="floatingBox shortBox">-></div>
+        <div class="floatingBox fillBox">
+            <p>Enter an URL to fetch your OAS file from</p>
+            <div >
+                <label for="tbxUrl">URL: </label>
+                <input id="tbxUrl" name="url" style="width: 80%" value="oasFiles/petstore.json"/>
+                <!--<input id="tbxUrl" name="url" style="width: 80%" value="https://petstore.swagger.io/v2/swagger.json"/>-->
+            </div>
+            <button class="next" id="button_url" type="button">Load</button>
+        </div>
+    </div>
+
+    <hr class="seperator">
+
+    <div class="leftbox">
+        <div class="floatingBox shortBox">-></div>
+        <div class="floatingBox fillBox">
+            <p>Or paste your OAS file here directly:</p>
+            <textarea id="taOASFile" style="width: 100%; height: 200px"></textarea>
+            <button class="next" id="button_next" type="button">Next</button>
+        </div>
+    </div>
+
+    <hr class="seperator">
+
+    <div class="leftbox">
+        <div class="floatingBox shortBox">-></div>
+        <div class="floatingBox fillBox">
+            <div style="display:block">
+                <p>or upload an already created workloadfile and jump to benchmark</p>
+                <button id="button_upload" type="button" style="display:block">Upload</button>
+            </div>
+            <button class="next" id="button_workload" type="button">Benchmark</button>
+        </div>
+    </div>
+
+    <div class = "leftbox">
+    </div>
+
+</div>
+
+<div class="bar" id="bottombar">
+    <p>Just some funny Pudding text</p>
+</div>
+
+<script type="text/javascript" src="js/lib/kotlin.js"></script>
+<script type="text/javascript" src="js/openISBTFrontend.js"></script>
+</body>
+</html>
