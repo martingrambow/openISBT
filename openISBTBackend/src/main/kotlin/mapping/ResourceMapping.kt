@@ -21,10 +21,10 @@ class ResourceMapping {
     var numberOfRequests:Int = 0;
     //true, if the user wants to benchmark this resource endpoint; false otherwise (true per default if the path is supported, can be changed in GUI)
     var enabled:Boolean = false;
-    //MatchConroller handles matcging from abstract pattern to concrete operations
+    //MatchConroller handles matching from abstract pattern to concrete operations
     var matchController:MatchController = MatchController()
     //Just to log what's happening
-    val log = LoggerFactory.getLogger(Class.forName("ResourceMapping"));
+    val log = LoggerFactory.getLogger("ResourceMapping");
 
     constructor(spec:OpenAPISPecifcation, config:PatternConfiguration, path:String) {
         this.resourcePath = path;
@@ -36,9 +36,9 @@ class ResourceMapping {
         matchController.registerMatchingUnit(ScanMatchingUnit())
         matchController.registerMatchingUnit(ReadMatchingUnit())
 
-        for (p in config.abstractPatterns) {
+        for (p in config.patterns) {
             //Add the pattern mapping for the current pattern to list of mappings
-            patternMappingList.add(getPatternMappingInclOperations(p, spec, this.resourcePath))
+            this.patternMappingList.add(getPatternMappingInclOperations(p, spec, this.resourcePath))
         }
 
         //This resource mapping is only supported if all pattern mappings are supported

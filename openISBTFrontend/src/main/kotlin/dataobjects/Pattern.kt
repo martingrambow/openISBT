@@ -1,7 +1,7 @@
 package dataobjects
 
-data class Pattern (var name:String,
+data class Pattern (var aPattern:AbstractPattern,
+                    var supported:Boolean,
                     var requests:Int,
-                    var weight:Int,
-                    var sequence:Array<AbstractOperation>){
+                    var operationSequence:Array<Array<PatternOperation>>){
 }

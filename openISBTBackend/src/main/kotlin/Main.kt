@@ -18,13 +18,14 @@ import io.ktor.request.receiveText
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import mapping.Mapper
+import mapping.ResourceMapping
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 val oasFiles:MutableMap<Int, String> = HashMap()
 val patternConfigs:MutableMap<Int, String> = HashMap()
-val patternMappings:MutableMap<Int, ArrayList<PatternMapping>> = HashMap()
+val resourceMappings:MutableMap<Int, ArrayList<ResourceMapping>> = HashMap()
 
 
 fun main(args: Array<String>) {
@@ -117,14 +118,14 @@ fun Application.module() {
             var id: Int;
             do {
                 id = r.nextInt(10000);
-                if (patternMappings.get(id) != null) {
+                if (resourceMappings.get(id) != null) {
                     found = true;
                 } else {
                     found = false;
                 }
             } while (found)
 
-            patternMappings.put(id, mapping)
+            resourceMappings.put(id, mapping)
 
             call.response.header("Access-Control-Allow-Origin", "*")
             call.respondText("Mapping is stored with key " + id, ContentType.Application.Any)
@@ -132,7 +133,7 @@ fun Application.module() {
 
         get("/api/mapping/{id}") {
             val id = Integer.parseInt(call.parameters.get("id"))
-            val mapping = patternMappings.getOrDefault(id, "not found")
+            val mapping = resourceMappings.getOrDefault(id, "not found")
             call.response.header("Access-Control-Allow-Origin", "*")
 
             val gson:Gson = GsonBuilder().create()
@@ -152,14 +153,14 @@ fun Application.module() {
                 enabled = false
             }
 
-            var mappingList = patternMappings.get(mappingID)
+            var mappingList = resourceMappings.get(mappingID)
             if (mappingList != null) {
                 for (mapping in mappingList) {
                     if (mapping.resourcePath == path && mapping.supported) {
                         mapping.enabled = enabled
                     }
                 }
-                patternMappings.put(mappingID, Mapper().calculateRequests(mappingList, config))
+                resourceMappings.put(mappingID, Mapper().calculateRequests(mappingList, config))
             }
 
             call.response.header("Access-Control-Allow-Origin", "*")

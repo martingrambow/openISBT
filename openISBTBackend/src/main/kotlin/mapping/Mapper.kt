@@ -19,8 +19,20 @@ class Mapper {
             log.debug("Top Level Path: " + path)
             var mapping = ResourceMapping(openApi, config, path)
             resourceMappingList.add(mapping)
-        }
 
+            log.debug("Resouce Mapping for " + path + ":")
+
+            for (mapping in mapping.patternMappingList) {
+                log.debug("  Pattern " + mapping.aPattern.name + ", supported=" + mapping.supported + ", requests=" + mapping.requests + ":")
+                for (operationlist in mapping.operationSequence) {
+                    log.debug("    NEXT OPERATION")
+                    for (entry in operationlist) {
+                        log.debug("      Operation: " + entry.aOperation.operation + " path=" + entry.path)
+                    }
+                }
+
+            }
+        }
         return calculateRequests(resourceMappingList, config)
     }
 
@@ -30,6 +42,11 @@ class Mapper {
             mapping.numberOfRequests = 0
             for (patternMapping in mapping.patternMappingList) {
                 patternMapping.requests = 0
+                for (list in patternMapping.operationSequence) {
+                    for (item in list) {
+                        item.requests = 0
+                    }
+                }
             }
         }
 
@@ -52,10 +69,24 @@ class Mapper {
                     mapping.patternMappingList.forEach { patternMapping: PatternMapping ->
                         totalWeight += patternMapping.aPattern.weight
                     }
-                    log.debug("TotalWeight for " + mapping.resourcePath + " is " + totalWeight)
                     mapping.patternMappingList.forEach { patternMapping: PatternMapping ->
-                        patternMapping.requests = Math.round( requestsPerTopLevelPath / totalWeight.toFloat() * patternMapping.aPattern.weight.toFloat())
-                        log.debug("Assigned some value to " + patternMapping.aPattern.name)
+                        var numberofPatternRequests = Math.round( requestsPerTopLevelPath / totalWeight.toFloat() * patternMapping.aPattern.weight.toFloat())
+                        patternMapping.requests = numberofPatternRequests
+                        //assign value also to pattern mappings and split them if there are multiple resource paths
+                        for (list in patternMapping.operationSequence) {
+                            var requestsToDistribute = numberofPatternRequests
+                            var numberOfPatternMappings = list.size
+                            if (numberOfPatternMappings > 0) {
+                                while (requestsToDistribute > 0) {
+                                    for (item in list) {
+                                        if (requestsToDistribute > 0) {
+                                            item.requests += 1
+                                            requestsToDistribute--
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

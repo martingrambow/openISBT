@@ -9,10 +9,12 @@ import patternconfiguration.AbstractPatternOperation
 
 class UpdateMatchingUnit : MatchingUnit{
     override fun match(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path: String): PatternOperation? {
-        if (pathItemObject.put != null) {
-            var operation = PatternOperation(abstractOperation, AbstractPatternOperation.UPDATE)
-            operation.path = path
-            return operation
+        if (abstractOperation.operation == AbstractPatternOperation.UPDATE.name) {
+            if (pathItemObject.put != null) {
+                var operation = PatternOperation(abstractOperation, AbstractPatternOperation.UPDATE)
+                operation.path = path
+                return operation
+            }
         }
         return null
     }

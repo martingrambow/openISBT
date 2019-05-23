@@ -9,10 +9,12 @@ import patternconfiguration.AbstractPatternOperation
 
 class DeleteMatchingUnit : MatchingUnit{
     override fun match(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path: String): PatternOperation? {
-        if (pathItemObject.delete != null) {
-            var operation = PatternOperation(abstractOperation, AbstractPatternOperation.DELETE)
-            operation.path = path
-            return operation
+        if (abstractOperation.operation == AbstractPatternOperation.DELETE.name) {
+            if (pathItemObject.delete != null) {
+                var operation = PatternOperation(abstractOperation, AbstractPatternOperation.DELETE)
+                operation.path = path
+                return operation
+            }
         }
         return null
     }
