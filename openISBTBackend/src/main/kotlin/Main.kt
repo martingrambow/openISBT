@@ -90,7 +90,7 @@ fun Application.module() {
             val content = call.receiveText()
             patternConfigs.put(id, content)
             call.response.header("Access-Control-Allow-Origin", "*")
-            call.respondText("pattern config stored with key " + id, ContentType.Application.Any)
+            call.respondText("patternMappingList config stored with key " + id, ContentType.Application.Any)
         }
         get("/api/patternConfigs/{id}") {
             val id = Integer.parseInt(call.parameters.get("id"))

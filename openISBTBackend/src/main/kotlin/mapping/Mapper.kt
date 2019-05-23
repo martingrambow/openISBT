@@ -1,7 +1,6 @@
 package mapping
 
 import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
-import de.tuberlin.mcc.patternconfiguration.Pattern
 import de.tuberlin.mcc.patternconfiguration.PatternConfiguration
 import org.slf4j.LoggerFactory
 
@@ -9,61 +8,59 @@ class Mapper {
 
     val log = LoggerFactory.getLogger(Class.forName("mapping.Mapper"));
 
-    fun mapPattern(openApi:OpenAPISPecifcation, config: PatternConfiguration):ArrayList<PatternMapping> {
+    fun mapPattern(openApi:OpenAPISPecifcation, config: PatternConfiguration):ArrayList<ResourceMapping> {
 
-        var patternlist = ArrayList<PatternMapping>()
+        var resourceMappingList = ArrayList<ResourceMapping>()
 
         //Determine top level resources
         val resourcePaths = getTopLevelResourcePaths(openApi)
-        //and map them to given pattern
+        //and map them to given patternMappingList
         for (path in resourcePaths) {
             log.debug("Top Level Path: " + path)
-            var mapping = PatternMapping(openApi, config, path)
-            patternlist.add(mapping)
+            var mapping = ResourceMapping(openApi, config, path)
+            resourceMappingList.add(mapping)
         }
 
-        return calculateRequests(patternlist, config)
+        return calculateRequests(resourceMappingList, config)
     }
 
-    fun calculateRequests(patternList:ArrayList<PatternMapping>, config: PatternConfiguration) : ArrayList<PatternMapping> {
+    fun calculateRequests(resourceMappingList:ArrayList<ResourceMapping>, config: PatternConfiguration) : ArrayList<ResourceMapping> {
         //Set all request numbers to 0
-        for (mapping in patternList) {
+        for (mapping in resourceMappingList) {
             mapping.numberOfRequests = 0
-            for (pair in mapping.pattern) {
-                pair.first.requests = 0
+            for (patternMapping in mapping.patternMappingList) {
+                patternMapping.requests = 0
             }
         }
 
-        //Distribute total pattern requests according to weights
-        var supportedAndEnabledPaths:ArrayList<PatternMapping> = ArrayList()
-        for (mapping in patternList) {
+        //Distribute total requests according to weights
+        var supportedAndEnabledPaths:ArrayList<ResourceMapping> = ArrayList()
+        for (mapping in resourceMappingList) {
             if (mapping.supported && mapping.enabled) {
                 supportedAndEnabledPaths.add(mapping)
             }
         }
         if (supportedAndEnabledPaths.size > 0) {
             var requestsPerTopLevelPath = config.totalPatternRequests / supportedAndEnabledPaths.size;
-            for (mapping in patternList) {
+            for (mapping in resourceMappingList) {
                 if (mapping.supported && mapping.enabled) {
                     //Distribute according to weight
                     mapping.numberOfRequests = requestsPerTopLevelPath
 
                     //find totalWeight
                     var totalWeight:Int = 0
-                    //const totalWeight = this._abstractPatterns.reduce((amount, pattern) => amount + pattern.weight, 0);
-                    //const amountOfRequests = Math.round(this._totalRequests / totalWeight * abstractPattern.weight);
-                    mapping.pattern.forEach { pair: Pair<Pattern, Boolean> ->
-                        totalWeight += pair.first.weight
+                    mapping.patternMappingList.forEach { patternMapping: PatternMapping ->
+                        totalWeight += patternMapping.aPattern.weight
                     }
                     log.debug("TotalWeight for " + mapping.resourcePath + " is " + totalWeight)
-                    mapping.pattern.forEach { pair: Pair<Pattern, Boolean> ->
-                        pair.first.requests = Math.round( requestsPerTopLevelPath / totalWeight.toFloat() * pair.first.weight.toFloat())
-                        log.debug("Assigned some value to " + pair.first.name)
+                    mapping.patternMappingList.forEach { patternMapping: PatternMapping ->
+                        patternMapping.requests = Math.round( requestsPerTopLevelPath / totalWeight.toFloat() * patternMapping.aPattern.weight.toFloat())
+                        log.debug("Assigned some value to " + patternMapping.aPattern.name)
                     }
                 }
             }
         }
-        return patternList
+        return resourceMappingList
     }
 
 
