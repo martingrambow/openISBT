@@ -1,10 +1,14 @@
 package de.tuberlin.mcc.openapispecification
 
 
-data class ParameterObject (val name: String,
+data class ParameterObject (val `$ref`: String,
+                            val name: String,
                             val inValue: String,
                             val description: String,
                             val required: Boolean,
                             val deprecated: Boolean,
-                            val allowEmptyValue: Boolean){
+                            val allowEmptyValue: Boolean,
+                            val style:String,
+                            val explode: Boolean,
+                            val schema: SchemaObject){
 }

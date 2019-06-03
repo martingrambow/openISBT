@@ -1,6 +1,7 @@
 package de.tuberlin.mcc.openapispecification
 
-data class HeaderObject (val name: String,
+data class HeaderObject (val `$ref`: String,
+                         val name: String,
                          val inValue: String,
                          val description: String,
                          val required: Boolean,

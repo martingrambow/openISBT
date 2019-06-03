@@ -919,6 +919,15 @@
             "description": "User Status"
           }
         },
+        "required": [
+          "id",
+          "username",
+          "firstname",
+          "lastname",
+          "email",
+          "password",
+          "phone"
+        ],
         "xml": {
           "name": "User"
         }

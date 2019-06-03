@@ -1,6 +1,6 @@
 package de.tuberlin.mcc.openapispecification
 
-data class PathItemObject (val ref: String,
+data class PathItemObject (val `$ref`: String,
                            val summary: String,
                            val description: String,
                            val get: OperationObject,

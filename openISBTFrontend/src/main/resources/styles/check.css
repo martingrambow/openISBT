@@ -1,3 +1,5 @@
+/* Main html page with table */
+
 .mappingTable {
   width: 100%;
   border-collapse: collapse;
@@ -28,7 +30,7 @@ th {
     text-align: center;
 }
 
-.patternline th, td {
+.patternline th, .patternline td {
     border-bottom: 3px solid #ddd;
     text-align: center;
 }
@@ -38,19 +40,8 @@ th {
     font-family: sans-serif;
 }
 
-.supported {
-    color: green;
-}
+/* Modal-related stuff */
 
-.notSupported {
-    color: red;
-}
-
-.patternoperation {
-    border-bottom: 3px dotted #ddd
-}
-
-/* The Modal (background) */
 .modal {
   display: none; /* Hidden by default */
   position: fixed; /* Stay in place */
@@ -59,13 +50,12 @@ th {
   left: 0;
   top: 0;
   width: 100%; /* Full width */
-  height: 80%; /* Full height */
+  height: 80%;
   overflow: auto; /* Enable scroll if needed */
   background-color: rgb(0,0,0); /* Fallback color */
   background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
 }
 
-/* Modal Content */
 .modal-content {
   background-color: #fefefe;
   margin: auto;
@@ -88,3 +78,87 @@ th {
   text-decoration: none;
   cursor: pointer;
 }
+
+.detailsline {
+    border-bottom: 3px solid #ddd;
+}
+
+/* Smaller Headlines like "Abstract Mapping"*/
+.detailsHeadline{
+    text-align:left;
+    width:100%;
+    text-decoration: underline;
+}
+
+/* Dotted line between abstract and concrete mappings*/
+.abstractMappingLine {
+    border-bottom: 3px dotted #ddd
+}
+
+/* labels in abstract mapping line*/
+.abstractMappingLabel {
+    float: left;
+    width: 25%;
+}
+
+.clear {
+    clear: both;
+}
+
+/* button which opens/collapses concrete mapping details*/
+.collapsible {
+  background-color: #777;
+  color: white;
+  cursor: pointer;
+  padding: 18px;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+  margin-top: 10px;
+}
+
+/* Show + sign if closed*/
+.collapsible_closed:after {
+  content: '\002B';
+  color: white;
+  font-weight: bold;
+  float: right;
+  margin-left: 5px;
+}
+
+/* Show - sign if open*/
+.collapsible_open:after {
+    content: "\2212";
+    color: white;
+    font-weight: bold;
+    float: right;
+    margin-left: 5px;
+}
+
+/* visible mapping details*/
+.showDetails {
+    maxHeight: none;
+    background-color: lightgray;
+}
+
+.showDetails p {
+    margin-block-start: unset;
+    text-align: left;
+}
+
+/*hidden mapping details*/
+.hideDetails {
+    max-height: 0;
+    background-color: #f1f1f1;
+    overflow: hidden;
+}
+
+.mappingDetailsTable td, .mappingDetailsTable tr {
+    text-align: left;
+    vertical-align: top;
+    padding-bottom: 5px;
+}
+
+

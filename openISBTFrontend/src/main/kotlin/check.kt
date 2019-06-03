@@ -1,4 +1,4 @@
-import dataobjects.AbstractOperation
+
 import dataobjects.Pattern
 import dataobjects.PatternOperation
 import dataobjects.ResourceMapping
@@ -8,6 +8,8 @@ import org.w3c.xhr.XMLHttpRequest
 import kotlin.browser.document
 import kotlin.browser.window
 import kotlin.dom.addClass
+import kotlin.dom.hasClass
+import kotlin.dom.removeClass
 
 class check {
 
@@ -15,10 +17,13 @@ class check {
 
     fun init() {
         println("Init check called")
+
+        //Get spec and config; and produce mapping
         val oas = getCookie("oasFile")
         val patternConf = getCookie("patternConfig")
         val req = XMLHttpRequest()
         req.onloadend = fun(event: Event) {
+            //parse mapping ID
             mappingID = -1
             val parts = req.responseText.split(" ")
             if (parts.size == 6) {
@@ -32,6 +37,7 @@ class check {
         req.open("GET", "http://localhost:8080/api/mapping?oasFile=" + oas + "&patternConfig=" + patternConf, true)
         req.send()
 
+        //Register eventlisteners which close the modal
         var span = document.getElementById("patternDetailsClose");
         if (span != null) {
             span.addEventListener("click", fun(event: Event) {
@@ -48,21 +54,16 @@ class check {
             }
         })
 
-        // When the user clicks anywhere outside of the modal, close it
-        //window.onclick = function(event) {
-        //    if (event.target == modal) {
-        //        modal.style.display = "none";
-        //    }
-
         println("check initialized")
     }
 
     fun reloadPatternTable() {
+        //Check if there is a valid mapping
         if (mappingID != -1) {
             var table = document.getElementById("tblmapping")
+
             //Remove all lines except the headline
             var lines = document.getElementsByClassName("patternline").asList();
-
             while (lines.size > 0 && lines.get(0) != null){
                 lines.get(0).remove()
             }
@@ -78,7 +79,7 @@ class check {
                     for (m in mappings) {
                         //println("Build row for:")
                         //println(JSON.stringify(m))
-                        val row = buildRow(m)
+                        val row = buildMappingRow(m)
                         if (table != null) {
                             table.appendChild(row)
                         }
@@ -92,7 +93,8 @@ class check {
     }
 
 
-    fun buildRow(mapping:ResourceMapping):HTMLTableRowElement {
+    fun buildMappingRow(mapping:ResourceMapping):HTMLTableRowElement {
+        //Create row and set its color
         val row = document.createElement("tr") as HTMLTableRowElement
         if (mapping.supported) {
             row.addClass("supportedRow")
@@ -100,17 +102,19 @@ class check {
             row.addClass("notSupportedRow")
         }
 
+        //Append path column
         val path = document.createElement("td") as HTMLTableCellElement
         val pathName = document.createElement("p") as HTMLParagraphElement
         pathName.innerHTML = mapping.resourcePath
         path.appendChild(pathName)
 
+        //Append Pattern column
         val pattern = document.createElement("td") as HTMLTableCellElement
-
         val patterncell = document.createElement("div") as HTMLDivElement
         for (a in mapping.patternMappingList) {
             val patternName = document.createElement("p") as HTMLParagraphElement
             if (a.supported) {
+                //Show Modal if it's supported
                 patternName.addClass("pointable")
                 patternName.addEventListener("click", fun(event: Event) {
                     clickPatternName(mapping.resourcePath, a)
@@ -118,6 +122,7 @@ class check {
             }
             var patternNameText = a.aPattern.name
             if (a.supported) {
+                //Append number of requests if it's supported
                 if (mapping.supported && mapping.enabled) {
                     patternNameText += " (" + a.requests + ")"
                 }
@@ -130,6 +135,7 @@ class check {
         }
         pattern.appendChild(patterncell)
 
+        //Append Benchmark(Checkbox) column
         val benchmark = document.createElement("td") as HTMLTableCellElement
         val cbxbenchmark = document.createElement("input") as HTMLInputElement
         cbxbenchmark.type="checkbox"
@@ -137,15 +143,16 @@ class check {
         cbxbenchmark.addEventListener("click", fun(event: Event) {
             cbxBenchmarkClick(cbxbenchmark, mapping.resourcePath)
         })
-
         if (!mapping.supported) {
             cbxbenchmark.disabled = true
         }
         benchmark.appendChild(cbxbenchmark)
 
+        //Append total number of requests column
         val requests = document.createElement("td") as HTMLTableCellElement
         requests.innerHTML = mapping.numberOfRequests.toString()
 
+        //Append all column elements
         row.appendChild(path)
         row.appendChild(pattern)
         row.appendChild(benchmark)
@@ -163,13 +170,13 @@ class check {
         var modal = document.getElementById("patternDetails");
 
         if (modal != null) {
+            //Fill pattern name
             val patternNameElemement = document.getElementById("details_patternName") as HTMLParagraphElement
             patternNameElemement.innerHTML = pattern.aPattern.name
 
             val detailsTable = document.getElementById("tbldetails")
             //Remove all lines except the headline
             var lines = document.getElementsByClassName("detailsline").asList();
-
             while (lines.size > 0 && lines.get(0) != null){
                 lines.get(0).remove()
             }
@@ -182,83 +189,150 @@ class check {
                 }
             }
 
-            //Set visible
+            //Show modal
             modal.setAttribute("style", "display: block")
         }
 
     }
 
     fun buildDetailPatternRow(operations:Array<PatternOperation>):HTMLTableRowElement {
+        //Create row element
         val row = document.createElement("tr") as HTMLTableRowElement
 
+        //Operation cell on the left
         val operationCell = document.createElement("td") as HTMLTableCellElement
         operationCell.innerHTML = operations[0].aPatternOperation;
 
-        val abstractMappingCell = document.createElement("td") as HTMLTableCellElement
+        //Mapping cell on the right
+        val mappingCell = document.createElement("td") as HTMLTableCellElement
+        //Mapping cell is split into abstract (top) and concrete mapping (below)
+        mappingCell.appendChild(getAbstractMappingDiv(operations[0]))
+        mappingCell.appendChild(getConcreteMappingDiv(operations))
+
+        //Build & style row
+        row.appendChild(operationCell)
+        row.appendChild(mappingCell)
+        row.addClass("detailsline")
+        return row
+    }
+
+    fun getAbstractMappingDiv(operation : PatternOperation) : HTMLDivElement{
         val abstractMappingDiv = document.createElement("div") as HTMLDivElement
 
+        val abstractPatternHeadline = document.createElement("p") as HTMLParagraphElement
+        abstractPatternHeadline.innerHTML = "Abstract Mapping:"
+        abstractPatternHeadline.addClass("detailsHeadline")
+        abstractMappingDiv.appendChild(abstractPatternHeadline)
+
         //Fill abstract mapping div
+        val inputLabel = createParagraphElement(getTextOrMinus("input", operation.aOperation.input))
+        inputLabel.addClass("abstractMappingLabel")
 
-        abstractMappingDiv.appendChild(createParagraphElement(getTextOrMinus("input", operations[0].aOperation.input)) )
-        abstractMappingDiv.appendChild(createParagraphElement(getTextOrMinus("output", operations[0].aOperation.output)))
-        abstractMappingDiv.appendChild(createParagraphElement(getTextOrMinus("selector", operations[0].aOperation.selector)))
-        abstractMappingDiv.appendChild(createParagraphElement(getTextOrMinus("wait", operations[0].aOperation.wait.toString())))
+        val selectorLabel = createParagraphElement(getTextOrMinus("selector", operation.aOperation.selector))
+        selectorLabel.addClass("abstractMappingLabel")
 
-        abstractMappingCell.appendChild(abstractMappingDiv)
+        val outputLabel = createParagraphElement(getTextOrMinus("output", operation.aOperation.output))
+        outputLabel.addClass("abstractMappingLabel")
 
+        val waitLabel = createParagraphElement(getTextOrMinus("wait", operation.aOperation.wait.toString()))
+        waitLabel.addClass("abstractMappingLabel")
 
-        val concreteMappingCell = document.createElement("td") as HTMLTableCellElement
+        abstractMappingDiv.appendChild(inputLabel)
+        abstractMappingDiv.appendChild(selectorLabel)
+        abstractMappingDiv.appendChild(outputLabel)
+        abstractMappingDiv.appendChild(waitLabel)
+
+        val clearDiv = document.createElement("div");
+        clearDiv.addClass("clear")
+        abstractMappingDiv.appendChild(clearDiv)
+
+        abstractMappingDiv.addClass("abstractMappingLine")
+        return abstractMappingDiv
+    }
+
+    fun getConcreteMappingDiv(operations: Array<PatternOperation>) :HTMLDivElement {
         val concreteMappingDiv = document.createElement("div") as HTMLDivElement
 
-        //Fill concrete mapping div
+        //Create Headline
+        val concretePatternHeadline = document.createElement("p") as HTMLParagraphElement
+        concretePatternHeadline.innerHTML = "Concrete Mappings:"
+        concretePatternHeadline.addClass("detailsHeadline")
+        concreteMappingDiv.appendChild(concretePatternHeadline)
+
+        //Create button (overview) and table (details) for every pattern operation
         for (i:Int in 0 .. operations.size-1) {
+
             var patternoperation = operations[i]
-            val patternOperationDiv = document.createElement("div") as HTMLDivElement
+            println("Operation: " + JSON.stringify(patternoperation))
 
-            //Fill patternoperation div
-            patternOperationDiv.appendChild(createParagraphElement(getTextOrMinus("path", patternoperation.path)))
-            patternOperationDiv.appendChild(createParagraphElement(getTextOrMinus("requests", patternoperation.requests.toString())))
-            patternOperationDiv.appendChild(createParagraphElement(getTextOrMinus("consumes", patternoperation.consumes)))
-            patternOperationDiv.appendChild(createParagraphElement(getTextOrMinus("produces", patternoperation.produces)))
+            //Create Button
+            var operationButton = document.createElement("button") as HTMLButtonElement
+            operationButton.innerHTML = patternoperation.requests.toString() + " requests to path: " + patternoperation.path
+            operationButton.addClass("collapsible")
+            operationButton.addClass("collapsible_closed")
+            operationButton.addEventListener("click", fun(event: Event) {
+                var content = operationButton.nextElementSibling;
+                if (content != null) {
+                    if (content.hasClass("hideDetails")) {
+                        //Show details
+                        content.removeClass("hideDetails")
+                        content.addClass("showDetails")
+                        operationButton.removeClass("collapsible_closed")
+                        operationButton.addClass("collapsible_open")
+                    } else {
+                        //Hide details
+                        content.removeClass("showDetails")
+                        content.addClass("hideDetails")
+                        operationButton.removeClass("collapsible_open")
+                        operationButton.addClass("collapsible_closed")
+                    }
+                }
+            })
 
-            if (i != operations.size-1) {
-                patternOperationDiv.addClass("patternoperation")
+            //Create details table and hide per default
+            val detailsDiv = document.createElement("div") as HTMLDivElement
+            val detailsTable = document.createElement("table") as HTMLTableElement
+            detailsDiv.addClass("hideDetails")
+            detailsTable.addClass("mappingDetailsTable")
+
+            //Fill details div
+            if (patternoperation.parameters != null ) {
+                detailsTable.appendChild(getDetailsParameterRow(patternoperation.parameters))
             }
-            concreteMappingDiv.appendChild(patternOperationDiv)
+            detailsTable.appendChild(getDetailsRow("Body:", patternoperation.requiredBody))
+            detailsTable.appendChild(getDetailsRow("Produces:", patternoperation.produces))
+
+            detailsDiv.appendChild(detailsTable)
+
+            concreteMappingDiv.appendChild(operationButton)
+            concreteMappingDiv.appendChild(detailsDiv)
         }
+        return concreteMappingDiv
+    }
 
-        concreteMappingCell.appendChild(concreteMappingDiv)
+    fun getDetailsParameterRow(parameters : Array<String>) : HTMLTableRowElement {
+        val row = document.createElement("tr") as HTMLTableRowElement
+        val parameterLabel = document.createElement("td") as HTMLTableCellElement
+        parameterLabel.innerHTML = "Parameters:"
+        row.appendChild(parameterLabel)
 
-        //for (path in operation.paths) {
-        //    val pathNameElement = document.createElement("p") as HTMLParagraphElement
-        //    pathNameElement.innerHTML = path
-        //    pathElementCell.appendChild(pathNameElement)
-        //}
+        val parameterValues = document.createElement("td") as HTMLTableCellElement
+        for (p in parameters) {
+            parameterValues.appendChild(createParagraphElement("->" + JSON.stringify(p)))
+        }
+        row.appendChild(parameterValues)
+        return row
+    }
 
-        //var inputValue = ""
-        //if (operation.input != null && operation.input.length > 0) {
-        //    inputValue += operation.input
-        //    if (operation.selector != null && operation.selector.length > 0) {
-        //        inputValue += "(" + operation.selector + ")"
-        //    }
-        //}
-        //inputElement.innerHTML = inputValue;
+    fun getDetailsRow(label: String, value: String) : HTMLTableRowElement {
+        val row = document.createElement("tr") as HTMLTableRowElement
+        val labelCell = document.createElement("td") as HTMLTableCellElement
+        labelCell.innerHTML = label
+        row.appendChild(labelCell)
 
-        val outputElement = document.createElement("td") as HTMLTableCellElement
-        var outputValue = ""
-        //if (operation.output != null) {
-        //    outputValue += operation.output
-        //}
-        //outputElement.innerHTML = outputValue
-
-        val pathElement = document.createElement("td") as HTMLTableCellElement
-
-        row.appendChild(operationCell)
-        row.appendChild(abstractMappingCell)
-        row.appendChild(concreteMappingCell)
-
-        row.addClass("detailsline")
-
+        val valueCell = document.createElement("td") as HTMLTableCellElement
+        valueCell.innerHTML = value
+        row.appendChild(valueCell)
         return row
     }
 
@@ -281,19 +355,17 @@ class check {
     fun closePatternDetails() {
         // Get the modal
         var modal = document.getElementById("patternDetails");
-
         if (modal != null) {
+            //Hide modal
             modal.setAttribute("style", "display: none")
         }
 
     }
 
     fun cbxBenchmarkClick(checkbox:HTMLInputElement, path:String) {
-        println("Clicked on " + path)
         val newState = checkbox.checked
-
         if (mappingID != -1) {
-            //Get mapping from server
+            //Update mapping on server side
             val req = XMLHttpRequest()
             req.onloadend = fun(event: Event) {
                 //Reload Table if answer is ok
@@ -306,8 +378,6 @@ class check {
             req.open("PUT", "http://localhost:8080/api/mapping/" + mappingID + "?path=" + path + "&enabled=" + newState + "&patternConfig=" + getCookie("patternConfig"), true)
             req.send()
         }
-
-
     }
 
 }

@@ -106,29 +106,30 @@ fun Application.module() {
             val oasFile = oasFiles.getOrDefault(oasFileID, "")
             val patternConfigFile = patternConfigs.getOrDefault(patternConfigID, "")
 
-            val spec:OpenAPISPecifcation = loadOAS(oasFile)
-            val config:PatternConfiguration = loadPatternConfig(patternConfigFile)
+            val spec:OpenAPISPecifcation? = loadOAS(oasFile)
+            val config:PatternConfiguration? = loadPatternConfig(patternConfigFile)
 
-            val mapper = Mapper()
+            if (spec != null && config != null) {
+                val mapper = Mapper()
+                val mapping = mapper.mapPattern(spec, config)
 
-            val mapping = mapper.mapPattern(spec, config)
+                val r = Random()
+                var found = false;
+                var id: Int;
+                do {
+                    id = r.nextInt(10000);
+                    if (resourceMappings.get(id) != null) {
+                        found = true;
+                    } else {
+                        found = false;
+                    }
+                } while (found)
 
-            val r = Random()
-            var found = false;
-            var id: Int;
-            do {
-                id = r.nextInt(10000);
-                if (resourceMappings.get(id) != null) {
-                    found = true;
-                } else {
-                    found = false;
-                }
-            } while (found)
+                resourceMappings.put(id, mapping)
 
-            resourceMappings.put(id, mapping)
-
-            call.response.header("Access-Control-Allow-Origin", "*")
-            call.respondText("Mapping is stored with key " + id, ContentType.Application.Any)
+                call.response.header("Access-Control-Allow-Origin", "*")
+                call.respondText("Mapping is stored with key " + id, ContentType.Application.Any)
+            }
         }
 
         get("/api/mapping/{id}") {
@@ -147,14 +148,14 @@ fun Application.module() {
             val patternConfigID = Integer.parseInt(call.parameters.get("patternConfig"))
 
             val patternConfigFile = patternConfigs.getOrDefault(patternConfigID, "")
-            val config:PatternConfiguration = loadPatternConfig(patternConfigFile)
+            val config:PatternConfiguration? = loadPatternConfig(patternConfigFile)
 
             if (call.parameters.get("enabled") == "false") {
                 enabled = false
             }
 
             var mappingList = resourceMappings.get(mappingID)
-            if (mappingList != null) {
+            if (mappingList != null && config != null) {
                 for (mapping in mappingList) {
                     if (mapping.resourcePath == path && mapping.supported) {
                         mapping.enabled = enabled
@@ -182,7 +183,7 @@ data class Entry(val message: String)
 fun readOASfile(fileName: String): String
         = File("openISBTBackend/src/main/resources/oasFiles/" + fileName).readText(Charsets.UTF_8)
 
-fun loadOAS(oasFile:String):OpenAPISPecifcation {
+fun loadOAS(oasFile:String):OpenAPISPecifcation? {
 
     val gsonBuilder:GsonBuilder = GsonBuilder()
     val pathsObjectDeserializer:JsonDeserializer<PathsObject> = PathsObjectDeserializer()
@@ -197,7 +198,7 @@ fun loadOAS(oasFile:String):OpenAPISPecifcation {
     return openAPISpec
 }
 
-fun loadPatternConfig(patternConfigFile: String): PatternConfiguration {
+fun loadPatternConfig(patternConfigFile: String): PatternConfiguration? {
     val gsonBuilder:GsonBuilder = GsonBuilder()
     val customGson:Gson = gsonBuilder.create();
 

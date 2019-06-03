@@ -1,22 +1,46 @@
 package matching.units
 
-import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
-import de.tuberlin.mcc.openapispecification.PathItemObject
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonObject
+import de.tuberlin.mcc.openapispecification.*
 import de.tuberlin.mcc.patternconfiguration.AbstractOperation
 import mapping.PatternOperation
 import matching.MatchingUnit
+import matching.MatchingUtil
+import matching.ReferenceResolver
 import patternconfiguration.AbstractPatternOperation
 
 class CreateMatchingUnit : MatchingUnit{
+
+    override fun getSupportedOperation(): String {
+        return AbstractPatternOperation.CREATE.name;
+    }
+
     override fun match(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path: String): PatternOperation? {
-        if (abstractOperation.operation == AbstractPatternOperation.CREATE.name) {
-            if (pathItemObject.post != null) {
-                var operation = PatternOperation(abstractOperation, AbstractPatternOperation.CREATE)
-                operation.path = path
-                return operation
+        if (pathItemObject.post != null) {
+            var operation = PatternOperation(abstractOperation, AbstractPatternOperation.CREATE)
+            operation.path = path
+
+            //Determine input and output values
+            println("CREATE:")
+            var postObject = pathItemObject.post
+            println("    " + GsonBuilder().create().toJson(postObject))
+            if (postObject.requestBody != null) {
+                //Operation requires some request body
+                var body = MatchingUtil().parseRequestBody(postObject.requestBody, spec)
+                if (body != null) {
+                    operation.requiredBody = body
+                }
             }
+            if (postObject.parameters != null) {
+                operation.parameters = MatchingUtil().parseParameter(postObject.parameters, spec)
+            }
+
+            return operation
         }
         return null
     }
+
+
 
 }
