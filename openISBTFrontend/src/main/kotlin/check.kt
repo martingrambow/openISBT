@@ -1,4 +1,5 @@
 
+import dataobjects.ParameterObject
 import dataobjects.Pattern
 import dataobjects.PatternOperation
 import dataobjects.ResourceMapping
@@ -28,6 +29,7 @@ class check {
             val parts = req.responseText.split(" ")
             if (parts.size == 6) {
                 mappingID = parts[5].toInt()
+                document.cookie = "mapping=" + parts[5]
             }
 
             if (mappingID != -1) {
@@ -52,6 +54,12 @@ class check {
                     closePatternDetails()
                 }
             }
+        })
+
+        val btnNext = document.getElementById("button_next")
+        btnNext?.addEventListener("click", fun(event: Event) {
+            handleNextButtonClick()
+
         })
 
         println("check initialized")
@@ -299,7 +307,7 @@ class check {
             if (patternoperation.parameters != null ) {
                 detailsTable.appendChild(getDetailsParameterRow(patternoperation.parameters))
             }
-            detailsTable.appendChild(getDetailsRow("Body:", patternoperation.requiredBody))
+            detailsTable.appendChild(getDetailsRow("Body:", JSON.stringify(patternoperation.requiredBody)))
             detailsTable.appendChild(getDetailsRow("Produces:", patternoperation.produces))
 
             detailsDiv.appendChild(detailsTable)
@@ -310,7 +318,7 @@ class check {
         return concreteMappingDiv
     }
 
-    fun getDetailsParameterRow(parameters : Array<String>) : HTMLTableRowElement {
+    fun getDetailsParameterRow(parameters : Array<ParameterObject>) : HTMLTableRowElement {
         val row = document.createElement("tr") as HTMLTableRowElement
         val parameterLabel = document.createElement("td") as HTMLTableCellElement
         parameterLabel.innerHTML = "Parameters:"
@@ -378,6 +386,10 @@ class check {
             req.open("PUT", "http://localhost:8080/api/mapping/" + mappingID + "?path=" + path + "&enabled=" + newState + "&patternConfig=" + getCookie("patternConfig"), true)
             req.send()
         }
+    }
+
+    private fun handleNextButtonClick() {
+        redirectToUrl("generate.html")
     }
 
 }

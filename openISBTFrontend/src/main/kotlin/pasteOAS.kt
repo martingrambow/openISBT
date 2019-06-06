@@ -1,11 +1,10 @@
 import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.HTMLSelectElement
 import org.w3c.dom.HTMLTextAreaElement
 import org.w3c.dom.events.Event
-import org.w3c.files.Blob
-import org.w3c.xhr.FormData
+import org.w3c.dom.get
 import org.w3c.xhr.XMLHttpRequest
 import kotlin.browser.document
-import kotlin.browser.window
 
 class pasteOAS {
 
@@ -16,6 +15,13 @@ class pasteOAS {
             handleUrlButtonClick()
 
         })
+
+        val btnLoadDefault = document.getElementById("button_loadDefault")
+        btnLoadDefault?.addEventListener("click", fun(event: Event) {
+            handleLoadButtonButtonClick()
+
+        })
+
         val btnNext = document.getElementById("button_next")
         btnNext?.addEventListener("click", fun(event: Event) {
             handleNextButtonClick()
@@ -31,6 +37,27 @@ class pasteOAS {
         val url = tbxUrl?.value
 
         //Get File from URL
+        val req = XMLHttpRequest()
+        req.onloadend = fun(event: Event) {
+            var text = req.responseText
+            var taOASFile = document.getElementById("taOASFile") as HTMLTextAreaElement
+            taOASFile.value= ""
+            taOASFile.value = text
+        }
+        req.open("GET", url, true)
+        req.send()
+    }
+
+    fun handleLoadButtonButtonClick() {
+        val selOASFile = document.getElementById("selOAS") as HTMLSelectElement
+        var url = "oasFiles/petstore.json"
+
+        if (selOASFile != null) {
+            val option = selOASFile.options[selOASFile.selectedIndex]?.getAttribute("value")
+            url = "oasFiles/" + option + ".json"
+        }
+        println("URL is " + url)
+
         val req = XMLHttpRequest()
         req.onloadend = fun(event: Event) {
             var text = req.responseText

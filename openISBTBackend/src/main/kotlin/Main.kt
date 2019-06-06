@@ -1,5 +1,6 @@
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonArray
 import com.google.gson.JsonDeserializer
 import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
 import de.tuberlin.mcc.openapispecification.PathsObject
@@ -19,6 +20,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import mapping.Mapper
 import mapping.ResourceMapping
+import workload.PatternRequest
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -26,6 +28,7 @@ import kotlin.collections.HashMap
 val oasFiles:MutableMap<Int, String> = HashMap()
 val patternConfigs:MutableMap<Int, String> = HashMap()
 val resourceMappings:MutableMap<Int, ArrayList<ResourceMapping>> = HashMap()
+val workloads:MutableMap<Int, Array<PatternRequest>> = HashMap()
 
 
 fun main(args: Array<String>) {
@@ -168,6 +171,41 @@ fun Application.module() {
             call.respondText("ok", ContentType.Application.Any)
         }
 
+        post("/api/workload") {
+            val r = Random()
+            var found = false;
+            var id: Int;
+            do {
+                id = r.nextInt(10000);
+                if (patternConfigs.get(id) != null) {
+                    found = true;
+                } else {
+                    found = false;
+                }
+            } while (found)
+
+            val workloadAsText = call.receiveText()
+            val workload = loadWorkload(workloadAsText)
+            if (workload != null) {
+                workloads.put(id, workload)
+                call.response.header("Access-Control-Allow-Origin", "*")
+                call.respondText("Workload is stored with key " + id, ContentType.Application.Any)
+            } else {
+                call.response.header("Access-Control-Allow-Origin", "*")
+                call.respondText("Unable to store workload", ContentType.Application.Any)
+            }
+
+        }
+
+        get("/api/workload/{workloadID?}") {
+            val id = Integer.parseInt(call.parameters.get("workloadID"))
+
+            val workload = workloads.getOrDefault(id, "not found")
+            call.response.header("Access-Control-Allow-Origin", "*")
+            val gson:Gson = GsonBuilder().create()
+            call.respondText(gson.toJson(workload), ContentType.Application.Json)
+        }
+
         options("/{...}") {
             log.info("OPTIONS CALLED")
             call.response.header("Access-Control-Allow-Origin", "*")
@@ -193,7 +231,6 @@ fun loadOAS(oasFile:String):OpenAPISPecifcation? {
 
     val customGson:Gson = gsonBuilder.create();
 
-
     var openAPISpec = customGson.fromJson(oasFile, OpenAPISPecifcation::class.java)
     return openAPISpec
 }
@@ -203,5 +240,13 @@ fun loadPatternConfig(patternConfigFile: String): PatternConfiguration? {
     val customGson:Gson = gsonBuilder.create();
 
     var patternConfig = customGson.fromJson(patternConfigFile, PatternConfiguration::class.java)
+    return patternConfig
+}
+
+fun loadWorkload(workloadAsText : String) : Array<PatternRequest>? {
+    val gsonBuilder:GsonBuilder = GsonBuilder()
+    val customGson:Gson = gsonBuilder.create();
+
+    var patternConfig = customGson.fromJson(workloadAsText, Array<PatternRequest>::class.java)
     return patternConfig
 }

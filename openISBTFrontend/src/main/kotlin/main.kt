@@ -22,6 +22,11 @@ fun main(args: Array<String>) {
                 val p = check()
                 p.init()
             }
+
+            if (contentName == "generate") {
+                val p = generate()
+                p.init()
+            }
         }
     }
 }

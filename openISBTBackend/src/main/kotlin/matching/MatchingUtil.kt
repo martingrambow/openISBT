@@ -17,7 +17,7 @@ class MatchingUtil {
         return result
     }
 
-    fun parseRequestBody(requestBody: RequestBodyObject, spec: OpenAPISPecifcation) : String? {
+    fun parseRequestBody(requestBody: RequestBodyObject, spec: OpenAPISPecifcation) : JsonObject? {
         var requestBodyObject = requestBody
         if (requestBodyObject.`$ref` != null) {
             //There is a reference which has to be resolved
@@ -47,12 +47,12 @@ class MatchingUtil {
                     if ("object".equals(schemaObject.type.toLowerCase())) {
                         //Resolve References in schema object
                         schemaObject.properties = ReferenceResolver().resolveReferencesInJsonObject(schemaObject.properties, spec);
-                        return GsonBuilder().create().toJson(schemaObject)
+                        return GsonBuilder().create().toJsonTree(schemaObject).asJsonObject
                     }
                     if ("array".equals(schemaObject.type.toLowerCase())) {
                         //Resolve References in schema object
                         schemaObject.items = ReferenceResolver().resolveReferencesInJsonObject(schemaObject.items, spec);
-                        return GsonBuilder().create().toJson(schemaObject)
+                        return GsonBuilder().create().toJsonTree(schemaObject).asJsonObject
                     }
 
                 }

@@ -5,4 +5,4 @@ data class AbstractOperation (val operation : String,
                               val output: String,
                               val selector : String,
                               val wait : Int){
-    }
+}

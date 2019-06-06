@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Console Output</title>
     <link rel="stylesheet" href="styles/main.css">
-    <link rel="stylesheet" href="styles/patternConfig.css">
+    <link rel="stylesheet" href="styles/generate.css">
 </head>
 <body>
 
@@ -16,14 +16,14 @@
     </div>
 </div>
 
-<div class="content" id="content" name="patternConfig">
+<div class="content" id="content" name="generate">
 
     <div >
         <div class="stepbar" id="steps">
             <a class="done step" href="pasteOAS.html">1) Start</a>
-            <a class="active step">2) Pattern</a>
-            <a class="inactive step">3) Check</a>
-            <a class="inactive step">4) Generate</a>
+            <a class="done step" href="patternConfig.html">2) Pattern</a>
+            <a class="done step" href="check.html">3) Check</a>
+            <a class="active step">4) Generate</a>
             <a class="inactive step">5) Run</a>
             <a class="inactive step">6) Results</a>
         </div>
@@ -31,18 +31,9 @@
 
     <hr class="stepbarseparation">
 
-    <div style="height:60%">
-        <p>Enter your Pattern configuration here:</p>
-        <select id="selPatternConfig">
-            <option value="allPattern" selected>allPattern</option>
-            <option value="allPatternWithoutScan">allPatternWithoutScan</option>
-            <option value="onlyCreate">onlyCreate</option>
-            <option value="withoutLST">withoutLST</option>
-            <option value="creAndCmd">creAndCmd</option>
-            <option value="creAndCmd_s">creAndCmd_s</option>
-        </select>
-        <button id="button_loadDefault" type="button">Load a Default Configuration</button>
-        <textarea id="taPatternConfig" style="width:100%; height: 100%"></textarea>
+    <div>
+        <button id="button_generate" type="button">Generate Workload</button>
+        <textarea id="taWorkload" class="ta_hidden"></textarea>
         <button class="next" id="button_next" type="button">Next</button>
     </div>
 
@@ -54,5 +45,7 @@
 
 <script type="text/javascript" src="js/lib/kotlin.js"></script>
 <script type="text/javascript" src="js/openISBTFrontend.js"></script>
+<script type="text/javascript" src="js/fakewrapper.js"></script>
+<script type="text/javascript" src="js/json-schema-faker.js"></script>
 </body>
 </html>
