@@ -177,7 +177,7 @@ fun Application.module() {
             var id: Int;
             do {
                 id = r.nextInt(10000);
-                if (patternConfigs.get(id) != null) {
+                if (workloads.get(id) != null) {
                     found = true;
                 } else {
                     found = false;

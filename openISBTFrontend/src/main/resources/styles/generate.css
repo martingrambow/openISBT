@@ -1,10 +1,105 @@
-.ta_hidden {
-    width: 100%;
-    height: 200px;
-    display: none
+.hidden{
+    display: none;
 }
 
-.ta_show {
-    width: 100%;
-    height: 300px;
+#progressbar {
+  width: 100%;
+  margin-bottom: 10px;
+  margin-top: 10px;
+  background-color: grey;
+}
+
+#progress {
+  width: 1%;
+  height: 30px;
+  text-align: center;
+  line-height: 30px;
+  color: white;
+  background-color: green;
+}
+
+.workloadDiv {
+  height: 400px;
+  overflow-y: scroll;
+  overflow-x:hidden;
+}
+
+.workloadTable {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.pointable {
+    cursor: pointer;
+}
+
+th {
+    font-weight: normal;
+}
+
+.headline th{
+    border-bottom: 3px solid #ddd;
+    font-weight: bold;
+    text-align: center;
+}
+
+.workloadRow {
+    border: solid 3px;
+    border-bottom: 3px solid #ddd;
+    background-color: lightgreen;
+}
+
+.workloadRow p{
+    text-align: center;
+}
+
+/* Modal-related stuff */
+
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  padding-top: 100px; /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 80%;
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+}
+
+.requestDetailsDiv {
+   border-bottom: 3px solid #ddd;
+}
+
+/* The Close Button */
+.close {
+  color: #aaaaaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.marginButton {
+    margin-top: 10px;
+    margin-bottom: 10px;
 }

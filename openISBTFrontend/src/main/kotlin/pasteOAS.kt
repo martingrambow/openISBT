@@ -3,6 +3,8 @@ import org.w3c.dom.HTMLSelectElement
 import org.w3c.dom.HTMLTextAreaElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.get
+import org.w3c.files.FileReader
+import org.w3c.files.get
 import org.w3c.xhr.XMLHttpRequest
 import kotlin.browser.document
 
@@ -27,9 +29,42 @@ class pasteOAS {
             handleNextButtonClick()
 
         })
+
+        val btnUpload = document.getElementById("button_upload")
+        btnUpload?.addEventListener("click", fun(event: Event) {
+            handleUploadButtonClick()
+
+        })
+
         getOASFile(getCookie("oasFile"))
 
         println("pasteOAS initialized")
+    }
+
+    private fun handleUploadButtonClick() {
+        var file = document.getElementById("uploadfile") as HTMLInputElement
+        if (file.files != null) {
+            if (file.files!!.length == 1) {
+                println("Try to upload one file")
+                var content = file.files!!.get(0)
+                if (content != null) {
+                    //Send workload to backend
+                    val req = XMLHttpRequest()
+                    req.onloadend = fun(event: Event) {
+                        var text = req.responseText
+                        val parts = text.split(" ")
+                        if (parts.size == 6) {
+                            document.cookie = "workload=" + parts[5]
+                            redirectToUrl("generate.html")
+                        }
+                    }
+                    req.open("POST", "http://localhost:8080/api/workload", true)
+                    req.send(content)
+                }
+                println(JSON.stringify(content))
+            }
+        }
+
     }
 
     fun handleUrlButtonClick() {

@@ -1,0 +1,44 @@
+<!DOCTYPE html> <!-- index.html -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Console Output</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/generate.css">
+</head>
+<body>
+
+<div class="bar" id="topnav">
+    <a class="active" href="index.html">OpenISBT</a>
+    <div class="topnav-right">
+        <a href="moreInfos.html">More Infos</a>
+        <a href="contact.html">Contact</a>
+    </div>
+</div>
+
+<div class="content" id="content" name="run">
+
+    <div >
+        <div class="stepbar" id="steps">
+            <a class="done step" href="pasteOAS.html">1) Start</a>
+            <a class="done step" href="patternConfig.html">2) Pattern</a>
+            <a class="done step" href="check.html">3) Check</a>
+            <a class="done step" href="generate.html">4) Generate</a>
+            <a class="active step">5) Run</a>
+            <a class="inactive step">6) Results</a>
+        </div>
+    </div>
+
+    <hr class="stepbarseparation">
+
+    <div>
+
+        <button class="next hidden" id="button_next" type="button">Next</button>
+    </div>
+</div>
+
+<script type="text/javascript" src="js/lib/kotlin.js"></script>
+<script type="text/javascript" src="js/openISBTFrontend.js"></script>
+<script type="text/javascript" src="js/json-schema-faker.js"></script>
+</body>
+</html>

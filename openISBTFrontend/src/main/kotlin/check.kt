@@ -80,7 +80,7 @@ class check {
             val req2 = XMLHttpRequest()
             req2.onloadend = fun(event: Event) {
                 var text = req2.responseText
-                if (text != "not found") {
+                if (text != "\"not found\"") {
                     //Transform to HTML elements and append to table
                     //println("TEXT:" + text)
                     val mappings = JSON.parse<Array<ResourceMapping>>(text)

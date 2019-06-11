@@ -70,7 +70,7 @@ class patternConfig {
             val req = XMLHttpRequest()
             req.onloadend = fun(event: Event) {
                 var text = req.responseText
-                if (text != "not found") {
+                if (text != "\"not found\"") {
                     var taPatternConfig = document.getElementById("taPatternConfig") as HTMLTextAreaElement
                     taPatternConfig.value = ""
                     taPatternConfig.value = text

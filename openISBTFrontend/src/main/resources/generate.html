@@ -32,15 +32,33 @@
     <hr class="stepbarseparation">
 
     <div>
-        <button id="button_generate" type="button">Generate Workload</button>
-        <textarea id="taWorkload" class="ta_hidden"></textarea>
-        <button class="next" id="button_next" type="button">Next</button>
+        <button id="button_generate" class="marginButton hidden" type="button">(Re-) Generate Workload</button>
+        <div id="progressbar" class="hidden">
+            <div id="progress"></div>
+        </div>
+        <div id="divWorkload" class="workloadDiv hidden" >
+            <table id="tblWorkload" class="hidden">
+                <tr class="headline">
+                    <th>ID</th>
+                    <th>Pattern</th>
+                    <th>Requests</th>
+                </tr>
+            </table>
+        </div>
+        <button class="marginButton hidden" id="btnDownload" type="button">Download workload</button>
+        <a id="downloadLink" style="display:none"></a>
+        <button class="next hidden" id="button_next" type="button">Next</button>
     </div>
 
-</div>
+    <div id="workloadDetails" class="modal">
+        <!-- Modal content -->
+        <div class="modal-content">
+            <span id="workloadDetailsClose" class="close">&times;</span>
+            <div id="workloadDetailsDiv">
+            </div>
+        </div>
+    </div>
 
-<div class="bar" id="bottombar">
-    <p>Just some funny Pudding text</p>
 </div>
 
 <script type="text/javascript" src="js/lib/kotlin.js"></script>

@@ -4,7 +4,7 @@ import kotlin.js.Json
 
 class ApiRequest() {
     var path:String = ""
-    var parameter: ArrayList<Pair<String, Json>> = ArrayList()
+    var parameter: Array<Pair<String, Json>> = arrayOf()
     var method: String = ""
     var body: Json? = null
 }

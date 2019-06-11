@@ -1,42 +1,67 @@
 package workload
 
 import dataobjects.ResourceMapping
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
+//import kotlinx.coroutines.*
 
 class WorkloadGenerator {
 
-    var workload = HashMap<Int, PatternRequest>()
+    private var patternRequests = HashMap<Int, PatternRequest>()
+    var listener:ProgressListener? = null
+    private var workload = ArrayList<PatternRequest>()
 
-    fun generateWorkload(resourceMappings : Array<ResourceMapping>) : ArrayList<PatternRequest> {
-        workload.clear()
+    suspend fun generateWorkloadAsync(resourceMappings : Array<ResourceMapping>, callback : () -> Unit) :Unit {
+        //GlobalScope.launch {
+        //   generateWorkload(resourceMappings)
+        //    callback()
+        //}
+    }
+
+    fun generateWorkload(resourceMappings : Array<ResourceMapping>) {
+        patternRequests.clear()
+
+        var total:Int = 0
+        //determine number of total patternRequests items
+        for (topLevelMapping in resourceMappings) {
+            if (topLevelMapping.supported && topLevelMapping.enabled) {
+                for (patternMapping in topLevelMapping.patternMappingList) {
+                    total += patternMapping.requests
+                }
+            }
+        }
 
         for (topLevelMapping in resourceMappings) {
             if (topLevelMapping.supported && topLevelMapping.enabled) {
                 for (patternMapping in topLevelMapping.patternMappingList) {
                     for (i in 1 .. patternMapping.requests) {
-                        val id = getNextID()
+                        val id = getNextID((total * 1.2).toInt())
                         var req = PatternRequest(id, patternMapping.aPattern.name)
                         req.generateApiRequests(patternMapping.operationSequence)
-                        workload.put(id, req)
+                        patternRequests.put(id, req)
+                        val current = patternRequests.size
+                        if (listener != null) {
+                            listener?.setProgress((current * 100) / total)
+                        }
                     }
                 }
             }
         }
 
-        var result = ArrayList<PatternRequest>()
-        for (entry in workload.entries) {
-            result.add(entry.value)
+        workload = ArrayList<PatternRequest>()
+        for (entry in patternRequests.entries) {
+            workload.add(entry.value)
         }
-        return result
     }
 
-    private fun getNextID() :Int{
+    fun getWorkload() : Array<PatternRequest> {
+        return workload.toTypedArray()
+    }
+
+    private fun getNextID(max : Int) :Int{
         var found = false
         var id: Int
         do {
             id = (1 .. 100000).shuffled().first()
-            if (workload.get(id) != null) {
+            if (patternRequests.get(id) != null) {
                 found = true
             } else {
                 found = false

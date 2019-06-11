@@ -28,9 +28,11 @@ external fun fakeSchema(schema: Json) : Json
 
 class PatternRequest(var id: Int, var abstractPatternName: String) {
 
-    var apiRequests : ArrayList<ApiRequest> = ArrayList()
+    var apiRequests : Array<ApiRequest> = arrayOf()
 
     fun generateApiRequests(operationSequence: Array<Array<PatternOperation>>) {
+
+        var requestList = ArrayList<ApiRequest>()
 
         for (operationList in operationSequence) {
             val idx = (0 .. operationList.size-1).shuffled().first()
@@ -51,23 +53,25 @@ class PatternRequest(var id: Int, var abstractPatternName: String) {
             }
 
             //Call json-schema-faker lib
-            req.parameter.clear()
+            var parameterList = ArrayList<Pair<String, Json>>()
             for (p in operation.parameters) {
                 //println("PARAMETER: " +  JSON.stringify(p))
                 //println("SCHEMA: " + JSON.stringify(p.schema))
 
                 var value =  fakeSchema(p.schema)
                 //println("VALUE: " + value)
-                req.parameter.add(Pair(p.name, value))
+                parameterList.add(Pair(p.name, value))
                 //println("Added " + p.name + " " + value)
             }
+            req.parameter = parameterList.toTypedArray()
             if (operation.requiredBody != null) {
                 //println("Body Schema: " + JSON.stringify(operation.requiredBody))
                 var v = fakeSchema( operation.requiredBody)
                 //println("Body Value: " + JSON.stringify(v))
                 req.body = v
             }
-            apiRequests.add(req)
+            requestList.add(req)
         }
+        apiRequests = requestList.toTypedArray()
     }
 }

@@ -27,6 +27,11 @@ fun main(args: Array<String>) {
                 val p = generate()
                 p.init()
             }
+
+            if (contentName == "run") {
+                val p = run()
+                p.init()
+            }
         }
     }
 }

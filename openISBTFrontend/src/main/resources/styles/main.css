@@ -18,14 +18,6 @@
   float: right;
 }
 
-/*Put some other bar to the bottom*/
-#bottombar {
-  overflow: hidden;
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-}
-
 /* Page content below top navigation*/
 .content {
   padding-top: 60px;
@@ -118,4 +110,6 @@
 
 button.next {
   float: right;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
