@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Console Output</title>
     <link rel="stylesheet" href="styles/main.css">
-    <link rel="stylesheet" href="styles/generate.css">
+    <link rel="stylesheet" href="styles/run.css">
 </head>
 <body>
 
@@ -33,12 +33,40 @@
 
     <div>
 
-        <button class="next hidden" id="button_next" type="button">Next</button>
+        <div class="addmargin">
+            <label for="tbxEndpoint">SUT Endpoint: </label>
+            <input id="tbxEndpoint" style="width: 400px" value=""/>
+        </div>
+
+        <div class="addmargin">
+            <label for="tbxThreads">Threads per worker: </label>
+            <input id="tbxThreads" type="number" style="width: 40px" value="10"/>
+        </div>
+
+        <label class="addmargin"> Workers:</label>
+        <button class="refresh" id="btnRefresh">Refresh worker status</button>
+
+        <div id="divWorkers" class="addmargin">
+
+        </div>
+
+        <button class="addmargin" id="btnAddWorker">Add Worker</button>
+
+        <br>
+
+        <button class="addmargin" id ="btnBenchmark">Start Benchmark</button>
+
+        <br>
+
+        <textarea class="addmargin hidden" id="taStatus"></textarea>
+
+        <br>
+
+        <button class="next hidden addmargin" id="button_next" type="button">Next</button>
     </div>
 </div>
 
 <script type="text/javascript" src="js/lib/kotlin.js"></script>
 <script type="text/javascript" src="js/openISBTFrontend.js"></script>
-<script type="text/javascript" src="js/json-schema-faker.js"></script>
 </body>
 </html>

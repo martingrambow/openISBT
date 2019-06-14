@@ -1,6 +1,5 @@
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.google.gson.JsonArray
 import com.google.gson.JsonDeserializer
 import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
 import de.tuberlin.mcc.openapispecification.PathsObject
@@ -20,16 +19,20 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import mapping.Mapper
 import mapping.ResourceMapping
+import run.Worker
+import run.Workerhandler
 import workload.PatternRequest
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
+val workerhandler = Workerhandler()
+
 val oasFiles:MutableMap<Int, String> = HashMap()
 val patternConfigs:MutableMap<Int, String> = HashMap()
 val resourceMappings:MutableMap<Int, ArrayList<ResourceMapping>> = HashMap()
 val workloads:MutableMap<Int, Array<PatternRequest>> = HashMap()
-
+val workerSets: MutableMap<Int,MutableMap<Int,Worker>> = HashMap()
 
 fun main(args: Array<String>) {
 
@@ -76,6 +79,15 @@ fun Application.module() {
             val file = oasFiles.getOrDefault(id, "not found")
             call.response.header("Access-Control-Allow-Origin", "*")
             call.respondText(file, ContentType.Application.Json)
+        }
+
+        get("/api/oasFiles/{id}/endpoints") {
+            val id = Integer.parseInt(call.parameters.get("id"))
+            val file = oasFiles.getOrDefault(id, "not found")
+            val spec:OpenAPISPecifcation? = loadOAS(file)
+
+            call.response.header("Access-Control-Allow-Origin", "*")
+            call.respondText(GsonBuilder().create().toJson(spec!!.servers), ContentType.Application.Json)
         }
 
         post("/api/patternConfigs") {
@@ -206,6 +218,132 @@ fun Application.module() {
             call.respondText(gson.toJson(workload), ContentType.Application.Json)
         }
 
+        get("/api/run/workerstatus") {
+            var url:String? = ""
+            var answer:String = "Error"
+            if (call.parameters.contains("url") && call.parameters.get("url")?.length!! > 0) {
+                var w:Worker = Worker()
+                w.url = call.parameters.get("url")!!
+                answer = workerhandler.getWorkerStatus(w)
+            }
+            call.response.header("Access-Control-Allow-Origin", "*")
+            call.respondText(answer, ContentType.Application.Any)
+        }
+
+        post("api/run/worker") {
+            val r = Random()
+            var found = false;
+            var id: Int;
+            do {
+                id = r.nextInt(10000);
+                if (workerSets.get(id) != null) {
+                    found = true;
+                } else {
+                    found = false;
+                }
+            } while (found)
+
+            val workerAsText = call.receiveText()
+            val workerAsObjects = loadWorker(workerAsText)
+            var worker:MutableMap<Int, Worker> = HashMap()
+            if (workerAsObjects != null) {
+                for (w in workerAsObjects.asList()) {
+                    worker.put(w.id, w)
+                }
+            }
+            var doubleUrls = false;
+            for (w in worker.values) {
+                for (o in worker.values) {
+                    if (w.url == o.url && w.id != o.id) {
+                        doubleUrls = true
+                    }
+                }
+            }
+            if (!doubleUrls) {
+                workerSets.put(id, worker)
+                call.response.header("Access-Control-Allow-Origin", "*")
+                call.respondText("Workers are stored with key " + id, ContentType.Text.Plain)
+            } else {
+                call.response.header("Access-Control-Allow-Origin", "*")
+                call.respondText("ERROR: Doubled URLs", ContentType.Text.Plain)
+            }
+        }
+
+        get("/api/run/ensureWorkerWaiting/{workersetID?}") {
+            val id = Integer.parseInt(call.parameters.get("workersetID"))
+            var allWaiting = workerhandler.ensureAllWorkerWaiting(workerSets.getOrDefault(id, HashMap()))
+            call.response.header("Access-Control-Allow-Origin", "*")
+            when {
+                allWaiting -> call.respondText("OK", ContentType.Text.Plain)
+                !allWaiting -> call.respondText("ERROR (see backend logs for details)", ContentType.Text.Plain)
+            }
+        }
+
+        get("/api/run/initWorker/{workersetID?}") {
+            val id = Integer.parseInt(call.parameters.get("workersetID"))
+            var endpoint:String? = ""
+            var noErrors = true
+            var worker = workerSets.getOrDefault(id, HashMap())
+            if (call.parameters.contains("endpoint") && call.parameters.get("endpoint")?.length!! > 0 && worker.values.size > 0) {
+                endpoint = call.parameters.get("endpoint")
+                for (w in worker.values) {
+                    if (noErrors && workerhandler.clearWorker(w)) {
+                        if(noErrors && workerhandler.setListener(w)) {
+                            if (noErrors && workerhandler.setEndpoint(w, endpoint!!)) {
+                                if (noErrors && workerhandler.setThreads(w, w.threads)) {
+                                    //Everything ok
+                                } else {
+                                    noErrors = false
+                                }
+                            } else {
+                                noErrors = false
+                            }
+                        } else {
+                            noErrors = false
+                        }
+                    } else {
+                        noErrors = false
+                    }
+                }
+            } else {
+                println("No endpoint or workers given")
+                noErrors = false
+            }
+            call.response.header("Access-Control-Allow-Origin", "*")
+            when {
+                noErrors -> call.respondText("OK", ContentType.Text.Plain)
+                !noErrors -> call.respondText("ERROR (see backend logs for details)", ContentType.Text.Plain)
+            }
+        }
+
+        get("/api/run/distribute/{workersetID?}") {
+            val workersetID = Integer.parseInt(call.parameters.get("workersetID"))
+
+            var workloadID:Int? = -1
+            var workload:Array<PatternRequest>?
+            if (call.parameters.contains("workload") && call.parameters.get("workload")?.length!! > 0) {
+                workloadID = call.parameters.get("workload")!!.toInt()
+            }
+            if (workloadID == -1) {
+                call.response.header("Access-Control-Allow-Origin", "*")
+                call.respondText("ERROR, workloadID not given", ContentType.Text.Plain)
+            } else {
+                workload = workloads.get(workloadID)
+                if (workload == null) {
+                    call.response.header("Access-Control-Allow-Origin", "*")
+                    call.respondText("ERROR, workload not found", ContentType.Text.Plain)
+                } else {
+                    if (workerhandler.distributeWorkload(workerSets.getOrDefault(workersetID, HashMap()), workload)) {
+                        call.response.header("Access-Control-Allow-Origin", "*")
+                        call.respondText("OK", ContentType.Text.Plain)
+                    } else {
+                        call.response.header("Access-Control-Allow-Origin", "*")
+                        call.respondText("ERROR (see backend logs for details)", ContentType.Text.Plain)
+                    }
+                }
+            }
+        }
+
         options("/{...}") {
             log.info("OPTIONS CALLED")
             call.response.header("Access-Control-Allow-Origin", "*")
@@ -249,4 +387,12 @@ fun loadWorkload(workloadAsText : String) : Array<PatternRequest>? {
 
     var patternConfig = customGson.fromJson(workloadAsText, Array<PatternRequest>::class.java)
     return patternConfig
+}
+
+fun loadWorker(workerAsText : String) : Array<Worker>? {
+    val gsonBuilder:GsonBuilder = GsonBuilder()
+    val customGson:Gson = gsonBuilder.create();
+
+    var worker = customGson.fromJson(workerAsText, Array<Worker>::class.java)
+    return worker
 }

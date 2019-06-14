@@ -5,3 +5,4 @@ build
 /openISBTFrontend/web
 /.gradle
 /.idea
+/openISBTWorker/out

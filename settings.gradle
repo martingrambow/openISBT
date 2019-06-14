@@ -1,4 +1,5 @@
 rootProject.name = 'openISBT'
 include 'openISBTBackend'
 include 'openISBTFrontend'
+include 'openISBTWorker'
 
