@@ -40,12 +40,12 @@ class Workerhandler {
         return false
     }
 
-    suspend fun setListener(worker: Worker) : Boolean {
+    suspend fun setListener(worker: Worker, workersetID: Int) : Boolean {
         try {
             var client = HttpClient()
             var url = buildURL(worker, "/api/setListener")
             val response = client.put<String>(url, {
-                body = "localhost:8080"
+                body = "http://localhost:8080/api/run/notification/" + workersetID + "/" + worker.id
             })
             client.close()
             if (response == "OK") {
@@ -99,21 +99,21 @@ class Workerhandler {
 
 
 
-    suspend fun ensureAllWorkerWaiting(workers : MutableMap<Int, Worker>) : Boolean {
+    suspend fun ensureAllWorkerStatus(workers : MutableMap<Int, Worker>, status: String) : Boolean {
         if (workers.values.size == 0) {
             println("No workers given")
             return false
         }
-        var allWaiting = true;
+        var allStatus = true;
 
         for (w in workers.values) {
             val response = getWorkerStatus(w)
-            if (response != "waiting") {
-                println("Worker " + w.id + " is " + response)
-                allWaiting = false
+            if (response != status) {
+                println("Worker " + w.id + " is not " + status + " but " + response)
+                allStatus = false
             }
         }
-        return allWaiting
+        return allStatus
     }
 
     suspend fun distributeWorkload(workers: MutableMap<Int, Worker>, workload:Array<PatternRequest>) : Boolean{
@@ -157,6 +157,34 @@ class Workerhandler {
                 }
             } catch (e:ConnectException) {
                 println("Error while setWorkload for worker " + w.id + ", " + w.url + ": " + e.toString())
+                return false
+            }
+        }
+
+        return true
+    }
+
+    suspend fun startBenchmark(workers: MutableMap<Int, Worker>) : Boolean{
+        if (workers.values.size == 0) {
+            println("No workers given")
+            return false
+        }
+
+        //Send packages to workers
+        for (w in workers.values) {
+            try {
+                var client = HttpClient()
+                var url = buildURL(w, "/api/startBenchmark")
+                val response = client.get<String>(url)
+                client.close()
+                if (response == "OK") {
+                    println("Benchmarked started at worker " + w.id + ", " + w.url)
+                } else {
+                    println("Error while starting benchmark run for worker " + w.id + ", " + w.url + ": " + response)
+                    return false
+                }
+            } catch (e:ConnectException) {
+                println("Error while starting benchmark run for worker " + w.id + ", " + w.url + ": " + e.toString())
                 return false
             }
         }

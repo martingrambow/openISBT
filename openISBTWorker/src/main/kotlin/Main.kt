@@ -9,16 +9,19 @@ import io.ktor.features.*
 import io.ktor.request.receiveText
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import workload.PatternRequest
-import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 var status:String = "waiting"
 var workload: Array<PatternRequest>? = null
-var listener:String = ""
 var endpoint:String = ""
 var threads = 1
+var executor = Executors.newFixedThreadPool(threads)
+val statisticshandler = Statisticshandler()
+
 
 fun main(args: Array<String>) {
     var port = args.get(0).toInt()
@@ -40,25 +43,45 @@ fun Application.module() {
         put("/api/setWorkload") {
             val content = call.receiveText()
             workload = loadWorkload(content)
+            statisticshandler.total = workload!!.size
             println("Got new workload with " + workload?.size + " items")
             call.response.header("Access-Control-Allow-Origin", "*")
             call.respondText("OK", ContentType.Application.Any)
         }
-        get("/api/runBenchmark") {
+        get("/api/startBenchmark") {
             println("Start benchmark run...")
+            status = "running"
+            val workloadList = workload?.asList()
+            statisticshandler.reset()
+            executor = Executors.newFixedThreadPool(threads)
+            if (workloadList != null) {
+                for (patternRequest in workloadList) {
+                    val worker = WorkloadRunnable(patternRequest, statisticshandler)
+                    executor.execute(worker)
+                }
+            }
+            GlobalScope.launch {
+                executor.shutdown()
+                executor.awaitTermination(2, TimeUnit.HOURS)
+                println("Worker DONE!")
+                status = "waiting"
+            }
+            println("Started.")
+
             call.response.header("Access-Control-Allow-Origin", "*")
             call.respondText("OK", ContentType.Application.Json)
         }
 
         put("/api/setListener") {
-            listener = call.receiveText()
-            println("New listener is " + listener)
+            statisticshandler.listener = call.receiveText()
+            println("New listener is " + statisticshandler.listener)
             call.response.header("Access-Control-Allow-Origin", "*")
             call.respondText("OK", ContentType.Text.Plain)
         }
         get("/api/clear") {
             workload = null
-            listener = ""
+            statisticshandler.listener = ""
+            statisticshandler.reset()
             endpoint = ""
             status = "waiting"
             println("Cleared")

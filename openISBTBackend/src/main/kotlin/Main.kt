@@ -1,6 +1,7 @@
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializer
+import com.google.gson.JsonObject
 import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
 import de.tuberlin.mcc.openapispecification.PathsObject
 import de.tuberlin.mcc.patternconfiguration.PatternConfiguration
@@ -14,9 +15,12 @@ import io.ktor.application.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.features.*
+import io.ktor.http.CacheControl
 import io.ktor.request.receiveText
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.launch
 import mapping.Mapper
 import mapping.ResourceMapping
 import run.Worker
@@ -43,6 +47,9 @@ fun main(args: Array<String>) {
 fun Application.module() {
     install(DefaultHeaders)
     install(CallLogging)
+
+    val notificationLists : MutableMap<Int, ArrayList<ServerNotification>> = HashMap()
+
     install(Routing) {
         get("/api/ping/{count?}") {
             var count: Int = Integer.valueOf(call.parameters["count"]?: "1")
@@ -261,6 +268,8 @@ fun Application.module() {
             }
             if (!doubleUrls) {
                 workerSets.put(id, worker)
+                notificationLists.put(id, ArrayList<ServerNotification>())
+
                 call.response.header("Access-Control-Allow-Origin", "*")
                 call.respondText("Workers are stored with key " + id, ContentType.Text.Plain)
             } else {
@@ -271,7 +280,7 @@ fun Application.module() {
 
         get("/api/run/ensureWorkerWaiting/{workersetID?}") {
             val id = Integer.parseInt(call.parameters.get("workersetID"))
-            var allWaiting = workerhandler.ensureAllWorkerWaiting(workerSets.getOrDefault(id, HashMap()))
+            var allWaiting = workerhandler.ensureAllWorkerStatus(workerSets.getOrDefault(id, HashMap()), "waiting")
             call.response.header("Access-Control-Allow-Origin", "*")
             when {
                 allWaiting -> call.respondText("OK", ContentType.Text.Plain)
@@ -288,7 +297,7 @@ fun Application.module() {
                 endpoint = call.parameters.get("endpoint")
                 for (w in worker.values) {
                     if (noErrors && workerhandler.clearWorker(w)) {
-                        if(noErrors && workerhandler.setListener(w)) {
+                        if(noErrors && workerhandler.setListener(w, id)) {
                             if (noErrors && workerhandler.setEndpoint(w, endpoint!!)) {
                                 if (noErrors && workerhandler.setThreads(w, w.threads)) {
                                     //Everything ok
@@ -344,6 +353,52 @@ fun Application.module() {
             }
         }
 
+        get("/api/run/start/{workersetID?}") {
+            val workersetID = Integer.parseInt(call.parameters.get("workersetID"))
+
+            if (workerhandler.startBenchmark(workerSets.getOrDefault(workersetID, HashMap()))) {
+                call.response.header("Access-Control-Allow-Origin", "*")
+                call.respondText("OK", ContentType.Text.Plain)
+            } else {
+                call.response.header("Access-Control-Allow-Origin", "*")
+                call.respondText("ERROR (see backend logs for details)", ContentType.Text.Plain)
+            }
+        }
+
+        post("api/run/notification/{workersetID?}/{workerID?}") {
+
+            val workersetID = Integer.parseInt(call.parameters.get("workersetID"))
+            val workerID = Integer.parseInt(call.parameters.get("workerID"))
+            val message = call.receiveText()
+            println("Got notification from set " + workersetID + ", worker " + workerID + ": " + message)
+
+            val list = notificationLists.get(workersetID)
+            if (list != null) {
+                list.add(ServerNotification(workersetID, workerID, message))
+            }
+
+            if (message.contains("100%")) {
+                var allDone = workerhandler.ensureAllWorkerStatus(workerSets.getOrDefault(workersetID, HashMap()), "waiting")
+                if (allDone && list != null) {
+                    list.add(ServerNotification(workersetID, -1, "All workers finished"))
+                }
+            }
+
+            call.response.header("Access-Control-Allow-Origin", "*")
+            call.respondText("OK", ContentType.Text.Plain)
+        }
+
+        get("/api/run/notification/{workersetID?}") {
+
+            val workersetID = Integer.parseInt(call.parameters.get("workersetID"))
+            val list = notificationLists.get(workersetID)
+            notificationLists.put(workersetID, ArrayList())
+            if (list != null) {
+                call.response.header("Access-Control-Allow-Origin", "*")
+                call.respondText(GsonBuilder().create().toJson(list), ContentType.Text.Plain)
+            }
+        }
+
         options("/{...}") {
             log.info("OPTIONS CALLED")
             call.response.header("Access-Control-Allow-Origin", "*")
@@ -356,21 +411,27 @@ fun Application.module() {
 
 data class Entry(val message: String)
 
+data class ServerNotification(val workersetID: Int, val workerID:Int, val message: String)
+
 fun readOASfile(fileName: String): String
         = File("openISBTBackend/src/main/resources/oasFiles/" + fileName).readText(Charsets.UTF_8)
 
 fun loadOAS(oasFile:String):OpenAPISPecifcation? {
 
-    val gsonBuilder:GsonBuilder = GsonBuilder()
-    val pathsObjectDeserializer:JsonDeserializer<PathsObject> = PathsObjectDeserializer()
-    gsonBuilder.registerTypeAdapter(PathsObject::class.java, pathsObjectDeserializer)
-    val responsesObjectDeserializer:JsonDeserializer<ResponsesObject> = ResponsesObjectDeserializer()
-    gsonBuilder.registerTypeAdapter(ResponsesObject::class.java, responsesObjectDeserializer)
+    if (oasFile.length > 15) {
 
-    val customGson:Gson = gsonBuilder.create();
+        val gsonBuilder: GsonBuilder = GsonBuilder()
+        val pathsObjectDeserializer: JsonDeserializer<PathsObject> = PathsObjectDeserializer()
+        gsonBuilder.registerTypeAdapter(PathsObject::class.java, pathsObjectDeserializer)
+        val responsesObjectDeserializer: JsonDeserializer<ResponsesObject> = ResponsesObjectDeserializer()
+        gsonBuilder.registerTypeAdapter(ResponsesObject::class.java, responsesObjectDeserializer)
 
-    var openAPISpec = customGson.fromJson(oasFile, OpenAPISPecifcation::class.java)
-    return openAPISpec
+        val customGson: Gson = gsonBuilder.create();
+
+        var openAPISpec = customGson.fromJson(oasFile, OpenAPISPecifcation::class.java)
+        return openAPISpec
+    }
+    return null
 }
 
 fun loadPatternConfig(patternConfigFile: String): PatternConfiguration? {

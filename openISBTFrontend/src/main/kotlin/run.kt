@@ -1,8 +1,11 @@
+import dataobjects.ServerNotifcation
 import org.w3c.dom.*
 import org.w3c.dom.events.Event
+import org.w3c.workers.ServiceWorker
 import org.w3c.xhr.XMLHttpRequest
 import worker.Worker
 import kotlin.browser.document
+import kotlin.browser.window
 import kotlin.dom.addClass
 import kotlin.dom.appendText
 import kotlin.dom.removeClass
@@ -14,6 +17,9 @@ class run {
     var nextWorkerID = 1
     var workersetID = -1
     var workloadID:Int = -1
+
+    var notificationListenerID:Int = -1
+    var benchmarkRunFinished = true
 
     var worker: Array<Worker> = arrayOf()
 
@@ -169,12 +175,57 @@ class run {
             var text = req.responseText
             if (text == "OK") {
                 appendToStatus("ok\n")
+                startBenchmark()
             } else {
                 appendToStatus("Error: " + text + "\n")
             }
         }
         req.open("GET", "http://localhost:8080/api/run/distribute/" + workersetID + "?workload=" + workloadID, true)
         req.send()
+    }
+
+    private fun startBenchmark() {
+        appendToStatus("Start benchmark...")
+        benchmarkRunFinished = false
+        val req = XMLHttpRequest()
+        req.onloadend = fun(event: Event) {
+            var text = req.responseText
+            if (text == "OK") {
+                appendToStatus("ok\n")
+                appendToStatus("Messages from workers:\n")
+                notificationListenerID = window.setInterval({receiveNotifications()}, 1000)
+            } else {
+                appendToStatus("Error: " + text + "\n")
+            }
+        }
+        req.open("GET", "http://localhost:8080/api/run/start/" + workersetID, true)
+        req.send()
+    }
+
+    fun receiveNotifications() {
+        val req = XMLHttpRequest()
+        req.onloadend = fun(event: Event) {
+            var text = req.responseText
+            var notifications = JSON.parse<Array<ServerNotifcation>>(text)
+            for (n in notifications) {
+                if (n.message.contains("All workers finished") && !benchmarkRunFinished){
+                    benchmarkRunFinished = true
+                    appendToStatus(n.message + "\n")
+                    window.clearInterval(notificationListenerID)
+                    collectResults()
+                } else {
+                    if (!benchmarkRunFinished) {
+                        appendToStatus("Worker" + n.workerID + ": " + n.message + "\n")
+                    }
+                }
+            }
+        }
+        req.open("GET", "http://localhost:8080/api/run/notification/" + workersetID, true)
+        req.send()
+    }
+
+    private fun collectResults() {
+        appendToStatus("Collecting results...")
     }
 
     fun addWorker(url:String = "") {
@@ -268,6 +319,7 @@ class run {
                             lblWorkerStatus.textContent = "E"
                         }
                         contains("waiting") -> lblWorkerStatus.textContent = "W"
+                        contains("running") -> lblWorkerStatus.textContent = "R"
                         else -> lblWorkerStatus.textContent = "O"
                     }
                 }
