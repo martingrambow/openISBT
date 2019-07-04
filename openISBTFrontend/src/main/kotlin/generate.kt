@@ -228,7 +228,7 @@ class generate : ProgressListener{
         //Append Pattern name column
         val patternCell = document.createElement("td") as HTMLTableCellElement
         val patternLabel = document.createElement("p") as HTMLParagraphElement
-        patternLabel.innerHTML = request.abstractPatternName
+        patternLabel.innerHTML = request.abstractPattern.name
         patternCell.appendChild(patternLabel)
 
         //Append Request number column

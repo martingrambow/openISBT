@@ -1,5 +1,6 @@
 package workload
 
+import dataobjects.AbstractPattern
 import dataobjects.PatternOperation
 import kotlin.js.Json
 
@@ -26,7 +27,7 @@ import kotlin.js.Json
 @JsNonModule
 external fun fakeSchema(schema: Json) : Json
 
-class PatternRequest(var id: Int, var abstractPatternName: String) {
+class PatternRequest(var id: Int, var abstractPattern: AbstractPattern) {
 
     var apiRequests : Array<ApiRequest> = arrayOf()
 

@@ -56,7 +56,7 @@ fun Application.module() {
             executor = Executors.newFixedThreadPool(threads)
             if (workloadList != null) {
                 for (patternRequest in workloadList) {
-                    val worker = WorkloadRunnable(patternRequest, statisticshandler)
+                    val worker = WorkloadRunnable(patternRequest, statisticshandler, endpoint)
                     executor.execute(worker)
                 }
             }

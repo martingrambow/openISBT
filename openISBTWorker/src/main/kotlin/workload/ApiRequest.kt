@@ -1,7 +1,7 @@
 package workload
 
 import com.google.gson.JsonElement
-import com.google.gson.JsonObject
+import io.ktor.http.ContentType
 
 data class ApiRequest(val path: String,
                       val parameter: Array<Pair<String, JsonElement>>,

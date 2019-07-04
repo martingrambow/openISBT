@@ -1,6 +1,6 @@
 package workload
 
 data class PatternRequest(val id: Int,
-                          val abstractPatternName: String,
+                          val abstractPattern: AbstractPattern,
                           val apiRequests: Array<ApiRequest>) {
 }

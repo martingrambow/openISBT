@@ -2,6 +2,7 @@ package mapping
 
 import com.google.gson.JsonObject
 import de.tuberlin.mcc.patternconfiguration.AbstractOperation
+import io.ktor.http.ContentType
 import patternconfiguration.AbstractPatternOperation
 
 class PatternOperation(abstractOperation: AbstractOperation, abstractPatternOperation:AbstractPatternOperation) {
