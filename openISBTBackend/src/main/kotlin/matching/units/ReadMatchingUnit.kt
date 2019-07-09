@@ -52,6 +52,12 @@ class ReadMatchingUnit : MatchingUnit{
                     operation.parameters = MatchingUtil().parseParameter(getObject.parameters, spec)
                     println("Found " + operation.parameters.size + " parameters")
                 }
+                if (getObject.security != null) {
+                    var header = MatchingUtil().parseApiKey(getObject.security, spec)
+                    if (header != null) {
+                        operation.headers.add(header)
+                    }
+                }
                 return operation
             }
         }

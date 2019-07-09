@@ -1,11 +1,9 @@
 package matching
 
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonElement
 import com.google.gson.JsonObject
-import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
-import de.tuberlin.mcc.openapispecification.ParameterObject
-import de.tuberlin.mcc.openapispecification.RequestBodyObject
-import de.tuberlin.mcc.openapispecification.SchemaObject
+import de.tuberlin.mcc.openapispecification.*
 
 class MatchingUtil {
 
@@ -15,6 +13,23 @@ class MatchingUtil {
             result.add(ReferenceResolver().resolveReferencesInJsonObject(GsonBuilder().create().toJsonTree(entry).asJsonObject, spec))
         }
         return result
+    }
+
+    fun parseApiKey(securityRequirement :JsonElement, spec: OpenAPISPecifcation) : Pair<String, JsonObject>? {
+        if (securityRequirement != null) {
+            if (securityRequirement.isJsonArray) {
+                var secReq = securityRequirement.asJsonArray.get(0).asJsonObject
+                for (name in secReq.entrySet()) {
+                    var scheme = spec.components.securitySchemes.get(name.key)
+                    if (scheme != null && scheme.name != null) {
+                        var first = scheme.name
+                        var second = GsonBuilder().create().toJsonTree(scheme)
+                        return Pair(first, second.asJsonObject)
+                    }
+                }
+            }
+        }
+        return null
     }
 
     fun parseRequestBody(requestBody: RequestBodyObject, spec: OpenAPISPecifcation) : JsonObject? {
@@ -60,4 +75,6 @@ class MatchingUtil {
         }
         return null
     }
+
+
 }

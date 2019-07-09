@@ -1,5 +1,6 @@
 package de.tuberlin.mcc.openapispecification
 
+import com.google.gson.JsonElement
 import openapispecification.ResponsesObject
 
 data class OperationObject (val tags: Array<String>,
@@ -12,6 +13,6 @@ data class OperationObject (val tags: Array<String>,
                             val responses: ResponsesObject,
                             val callBacks: Map<String, CallBackObject>,
                             val deprecated: Boolean,
-                            val security: Array<SecurityRequirementObject>,
+                            val security: JsonElement,
                             val servers: Array<ServerObject>){
 }

@@ -36,6 +36,12 @@ class CreateMatchingUnit : MatchingUnit{
             if (postObject.parameters != null) {
                 operation.parameters = MatchingUtil().parseParameter(postObject.parameters, spec)
             }
+            if (postObject.security != null) {
+                var header = MatchingUtil().parseApiKey(postObject.security, spec)
+                if (header != null) {
+                    operation.headers.add(header)
+                }
+            }
 
             return operation
         }

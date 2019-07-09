@@ -685,7 +685,8 @@
             "style": "simple",
             "explode": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "faker": "internet.userName"
             }
           }
         ],
@@ -730,7 +731,8 @@
             "style": "simple",
             "explode": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "faker": "internet.userName"
             }
           }
         ],
@@ -777,7 +779,8 @@
             "style": "simple",
             "explode": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "faker": "internet.userName"
             }
           }
         ],
@@ -898,13 +901,16 @@
             "format": "int64"
           },
           "username": {
-            "type": "string"
+            "type": "string",
+            "faker": "internet.userName"
           },
           "firstName": {
-            "type": "string"
+            "type": "string",
+            "faker": "name.firstName"
           },
           "lastName": {
-            "type": "string"
+            "type": "string",
+            "faker": "name.lastName"
           },
           "email": {
             "type": "string"

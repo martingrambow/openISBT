@@ -50,6 +50,12 @@ class ScanMatchingUnit : MatchingUnit{
                 if (scanObject.parameters != null) {
                     operation.parameters = MatchingUtil().parseParameter(scanObject.parameters, spec)
                 }
+                if (scanObject.security != null) {
+                    var header = MatchingUtil().parseApiKey(scanObject.security, spec)
+                    if (header != null) {
+                        operation.headers.add(header)
+                    }
+                }
 
                 return operation
             }

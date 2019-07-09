@@ -4,6 +4,7 @@ import kotlin.browser.window
 
 fun main(args: Array<String>) {
     println(args)
+
     window.onload = {
         val content = document.getElementById("content")
         if (content != null) {

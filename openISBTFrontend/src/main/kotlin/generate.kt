@@ -280,6 +280,9 @@ class generate : ProgressListener{
         for (p in request.parameter) {
             requestDiv.appendChild(getParagraph("Parameter " + p.first + ": " + JSON.stringify(p.second)))
         }
+        for (h in request.headers) {
+            requestDiv.appendChild(getParagraph("Header " + h.first + ": " + JSON.stringify(h.second)))
+        }
         if (request.body != null) {
             requestDiv.appendChild(getParagraph("Body: " + JSON.stringify(request.body)))
         }

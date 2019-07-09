@@ -8,5 +8,6 @@ data class SchemaObject (val `$ref`: String,
                          var properties:JsonObject,
                          var items:JsonObject,
                          var enum: JsonArray,
+                         var faker: String,
                          val required:Array<String>){
 }

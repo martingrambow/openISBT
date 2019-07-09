@@ -36,6 +36,13 @@ class DeleteMatchingUnit : MatchingUnit{
                 operation.parameters = MatchingUtil().parseParameter(deleteObject.parameters, spec)
             }
 
+            if (deleteObject.security != null) {
+                var header = MatchingUtil().parseApiKey(deleteObject.security, spec)
+                if (header != null) {
+                    operation.headers.add(header)
+                }
+            }
+
             return operation
         }
         return null

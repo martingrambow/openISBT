@@ -307,6 +307,7 @@ class check {
             if (patternoperation.parameters != null ) {
                 detailsTable.appendChild(getDetailsParameterRow(patternoperation.parameters))
             }
+            detailsTable.appendChild(getDetailsRow("Headers:", JSON.stringify(patternoperation.headers)))
             detailsTable.appendChild(getDetailsRow("Body:", JSON.stringify(patternoperation.requiredBody)))
             detailsTable.appendChild(getDetailsRow("Produces:", patternoperation.produces))
 

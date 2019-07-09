@@ -6,3 +6,4 @@ build
 /.gradle
 /.idea
 /openISBTWorker/out
+/openISBTFrontend/node_modules

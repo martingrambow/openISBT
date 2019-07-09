@@ -23,13 +23,34 @@ import kotlin.js.Json
 //@JsName("FakeWrapper")
 //external fun sayHello(name: String)
 
-@JsModule("fakewrapper")
-@JsNonModule
-external fun fakeSchema(schema: Json) : Json
+//@JsModule("fakewrapper")
+//@JsNonModule
+//external fun fakeSchema(schema: Json) : Json
+
+external fun require(module:String):dynamic
 
 class PatternRequest(var id: Int, var abstractPattern: AbstractPattern) {
 
+
     var apiRequests : Array<ApiRequest> = arrayOf()
+
+    fun fakeSchema(schema: Json) : Json {
+
+        println("BEFORE")
+
+        //var faker = require("faker")
+        //var randomName = faker.name.findName();
+        //println("NAME: " + randomName)
+
+
+        var jsf = require("json-schema-faker")
+        js("jsf.extend('faker', function(){var faker = require('faker'); return faker;});")
+        var pud = jsf.generate(schema)
+        //var pud = js("jsf.generate({\"type\":\"string\", \"faker\":\"internet.userName\"})")
+        println("PUD: " + pud)
+
+        return pud
+    }
 
     fun generateApiRequests(operationSequence: Array<Array<PatternOperation>>) {
 
@@ -38,6 +59,7 @@ class PatternRequest(var id: Int, var abstractPattern: AbstractPattern) {
         for (operationList in operationSequence) {
             val idx = (0 .. operationList.size-1).shuffled().first()
             var operation = operationList.get(idx)
+            //println("Operation to fill: " + JSON.stringify(operation))
 
             var req = ApiRequest()
             req.path = operation.path
@@ -65,9 +87,20 @@ class PatternRequest(var id: Int, var abstractPattern: AbstractPattern) {
                 //println("Added " + p.name + " " + value)
             }
             req.parameter = parameterList.toTypedArray()
+
+            if (operation.headers.size > 0) {
+                var headerList = ArrayList<Pair<String, String>>()
+                for (p in operation.headers) {
+                    var headerValue = fakeSchema(p.second).toString()
+                    headerList.add(Pair(p.first, headerValue))
+                }
+                req.headers = headerList.toTypedArray()
+            }
+
             if (operation.requiredBody != null) {
-                //println("Body Schema: " + JSON.stringify(operation.requiredBody))
+                println("Body Schema: " + JSON.stringify(operation.requiredBody))
                 var v = fakeSchema( operation.requiredBody)
+                println("Faked Body: " + JSON.stringify(v))
                 //println("Body Value: " + JSON.stringify(v))
                 req.body = v
             }

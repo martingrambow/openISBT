@@ -1,5 +1,6 @@
+import jsf from 'json-schema-faker';
 
 function fakeSchema(schema) {
-    return JSONSchemaFaker.generate(schema);
+    print(jsf.generate(schema));
 }
 exports=fakeSchema;

@@ -35,6 +35,12 @@ class UpdateMatchingUnit : MatchingUnit{
             if (updateObject.parameters != null) {
                 operation.parameters = MatchingUtil().parseParameter(updateObject.parameters, spec)
             }
+            if (updateObject.security != null) {
+                var header = MatchingUtil().parseApiKey(updateObject.security, spec)
+                if (header != null) {
+                    operation.headers.add(header)
+                }
+            }
 
             return operation
         }

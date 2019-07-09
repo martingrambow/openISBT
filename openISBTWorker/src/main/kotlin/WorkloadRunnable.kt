@@ -1,5 +1,8 @@
+import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import com.google.gson.JsonParser
+import com.google.gson.stream.JsonReader
 import io.ktor.client.HttpClient
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
@@ -11,66 +14,132 @@ import io.ktor.http.*
 import io.ktor.http.content.TextContent
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import linking.LinkController
+import org.slf4j.LoggerFactory
+import workload.ApiRequest
 import workload.PatternRequest
 import java.lang.Exception
 import java.net.URLEncoder
 
 class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler: Statisticshandler, val endpoint:String) : Runnable {
 
-    override fun run() {
-        println("Some request for Pattern " + patternRequest.abstractPattern.name + ":" + patternRequest.id + ", " + patternRequest.apiRequests.size + " API requests")
+    val log = LoggerFactory.getLogger("WorkloadRunnable");
 
-        for (i in 0 .. patternRequest.apiRequests.size-1) {
+    companion object {
+        fun getController(): LinkController = LinkController()
+    }
+
+    override fun run() {
+        log.debug("Running pattern " + patternRequest.abstractPattern.name + ": ID=" + patternRequest.id + ", " + patternRequest.apiRequests.size + " API requests")
+
+        var abstractValues: MutableMap<String, ApiRequest> = HashMap()
+
+        for (i in 0..patternRequest.apiRequests.size - 1) {
             var apiRequest = patternRequest.apiRequests.get(i)
+            var abstractOperation = patternRequest.abstractPattern.sequence.get(i)
+            log.debug("" + patternRequest.id + ": Running " + abstractOperation.operation + " against " + apiRequest.path)
+
+            if (abstractOperation.input != null) {
+
+                val dependingRequest = abstractValues.get(abstractOperation.input)
+                if (dependingRequest != null) {
+
+                    var adjustedRequest = getController().linkRequests(dependingRequest, apiRequest, abstractOperation)
+                    if (adjustedRequest == null) {
+                        log.error("Unable to link request but there should be a link")
+                    } else {
+                        log.debug("Successfully linked request to previous one")
+                        apiRequest = adjustedRequest
+                    }
+                }
+            }
+
             try {
                 var client = HttpClient()
                 var url = endpoint + apiRequest.path
+                log.debug("Path is " + url)
                 url = buildUrl(url, apiRequest.parameter)
-                println("URL: " + url)
+                log.debug("URL is " + url)
 
-                with (apiRequest.method) {
+                with(apiRequest.method) {
+                    log.info("" + patternRequest.id + ": Sending " + apiRequest.method + " to " + url + ", body: " + apiRequest.body.toString())
                     when {
                         equals("POST") -> {
-                            GlobalScope.launch {
-                                println("Sending " + apiRequest.method + " to " + url + ", body: " + apiRequest.body.toString())
-                                val response = client.post<HttpResponse>(url) {
+                            runBlocking {
+                                var response = client.post<HttpResponse>(url) {
                                     method = HttpMethod.Post
                                     body = TextContent(apiRequest.body.toString(), contentType = ContentType.Application.Json)
+                                    if (apiRequest.headers != null && apiRequest.headers.size > 0) {
+                                        for (h in apiRequest.headers) {
+                                            log.debug("Add header: " + h.first + ", " + h.second)
+                                            headers.append(h.first, h.second)
+                                        }
+                                    }
                                 }
-                                println("Response (" + response.status.value + "): " + response.readText())
+                                var responseText = response.readText()
+                                log.info("" + patternRequest.id + ": Responded (" + response.status.value + ") " + responseText)
+                                apiRequest.response = responseText
+                                apiRequest.status = response.status.value
                                 client.close()
                             }
                         }
                         equals("GET") -> {
-                            GlobalScope.launch {
-                                println("Sending " + apiRequest.method + " to " + url + ", body: " + apiRequest.body.toString())
-                                val response = client.get<HttpResponse>(url) {
+                            runBlocking {
+                                var response = client.get<HttpResponse>(url) {
                                     method = HttpMethod.Get
                                     body = TextContent(apiRequest.body.toString(), contentType = ContentType.Application.Json)
+                                    if (apiRequest.headers != null && apiRequest.headers.size > 0) {
+                                        for (h in apiRequest.headers) {
+                                            log.debug("Add header: " + h.first + ", " + h.second)
+                                            headers.append(h.first, h.second)
+                                        }
+                                    }
+
                                 }
-                                println("Response (" + response.status.value + "): " + response.readText())
+                                var responseText = response.readText()
+                                log.info("" + patternRequest.id + ": Responded (" + response.status.value + ") " + responseText)
+                                apiRequest.response = responseText
+                                apiRequest.status = response.status.value
                                 client.close()
                             }
                         }
                         equals("PUT") -> {
-                            GlobalScope.launch {
-                                println("Sending " + apiRequest.method + " to " + url + ", body: " + apiRequest.body.toString())
-                                val response = client.put<HttpResponse>(url) {
+                            runBlocking {
+                                var response = client.put<HttpResponse>(url) {
                                     method = HttpMethod.Put
                                     body = TextContent(apiRequest.body.toString(), contentType = ContentType.Application.Json)
+                                    if (apiRequest.headers != null && apiRequest.headers.size > 0) {
+                                        for (h in apiRequest.headers) {
+                                            log.debug("Add header: " + h.first + ", " + h.second)
+                                            headers.append(h.first, h.second)
+                                        }
+                                    }
                                 }
-                                println("Response (" + response.status.value + "): " + response.readText())
+                                var responseText = response.readText()
+                                log.info("" + patternRequest.id + ": Responded (" + response.status.value + ") " + responseText)
+                                apiRequest.response = responseText
+                                apiRequest.status = response.status.value
                                 client.close()
                             }
                         }
                         equals("DELETE") -> {
-                            GlobalScope.launch {
-                                println("Sending " + apiRequest.method + " to " + url + ", body: " + apiRequest.body.toString())
-                                val response = client.delete<HttpResponse>(url) {
+                            runBlocking {
+                                var response = client.delete<HttpResponse>(url) {
                                     method = HttpMethod.Delete
                                     body = TextContent(apiRequest.body.toString(), contentType = ContentType.Application.Json)
+                                    if (apiRequest.headers != null && apiRequest.headers.size > 0) {
+                                        for (h in apiRequest.headers) {
+                                            log.debug("Add header: " + h.first + ", " + h.second)
+                                            headers.append(h.first, h.second)
+                                        }
+                                    }
+
                                 }
-                                println("Response (" + response.status.value + "): " + response.readText())
+                                var responseText = response.readText()
+                                log.info("" + patternRequest.id + ": Responded (" + response.status.value + ") " + responseText)
+                                apiRequest.response = responseText
+                                apiRequest.status = response.status.value
                                 client.close()
                             }
                         }
@@ -80,16 +149,19 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
                     }
                 }
             } catch (e: Exception) {
-                println("Unable to process ApiRequest :(")
+                log.error("Unable to process ApiRequest :(")
+                e.printStackTrace()
+            }
+
+            if (abstractOperation.output != null) {
+                abstractValues.put(abstractOperation.output, apiRequest)
             }
         }
-
-
         Thread.sleep(500)
         statisticshandler.addDone()
     }
 
-    private fun buildUrl(url:String, parameter : Array<Pair<String, JsonElement>>) : String {
+    private fun buildUrl(url:String, parameter : Array<Pair<String, String>>) : String {
         var result = url
 
         //replace {pathParameter}
@@ -101,8 +173,9 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
             //Replace paramName with actual value given in parameters
             for (i in 0 .. parameter.size-1) {
                 if (parameter[i].first.equals(paramName)) {
-                    paramName = URLEncoder.encode(parameter[i].second.toString(),"UTF-8")
-                    parameter[i] = Pair("", JsonObject())
+                    paramName = parameter[i].second.toString()
+                    //paramName = URLEncoder.encode(parameter[i].second.toString(),"UTF-8")
+                    parameter[i] = Pair("", "")
                 }
             }
             //concat together
