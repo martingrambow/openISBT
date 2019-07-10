@@ -164,6 +164,7 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
             measurement.apiRequestMeasurements.add(apiMeasurement)
         }
         measurement.end = System.currentTimeMillis()
+        statisticshandler.addMeasurement(measurement)
         log.debug("Created Measurement: " + GsonBuilder().create().toJson(measurement))
         statisticshandler.addDone()
     }

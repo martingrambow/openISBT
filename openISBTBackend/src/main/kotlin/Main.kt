@@ -23,6 +23,7 @@ import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.launch
 import mapping.Mapper
 import mapping.ResourceMapping
+import measurement.PatternMeasurement
 import run.Worker
 import run.Workerhandler
 import workload.PatternRequest
@@ -37,6 +38,7 @@ val patternConfigs:MutableMap<Int, String> = HashMap()
 val resourceMappings:MutableMap<Int, ArrayList<ResourceMapping>> = HashMap()
 val workloads:MutableMap<Int, Array<PatternRequest>> = HashMap()
 val workerSets: MutableMap<Int,MutableMap<Int,Worker>> = HashMap()
+val results: MutableMap<Int,ArrayList<PatternMeasurement>> = HashMap()
 
 fun main(args: Array<String>) {
 
@@ -401,6 +403,28 @@ fun Application.module() {
                 call.response.header("Access-Control-Allow-Origin", "*")
                 call.respondText(GsonBuilder().create().toJson(list), ContentType.Text.Plain)
             }
+        }
+
+        get ("/api/run/collect/{workersetID?}") {
+            val workersetID = Integer.parseInt(call.parameters.get("workersetID"))
+
+            var measurements = workerhandler.collectResults(workerSets.getOrDefault(workersetID, HashMap()))
+
+            val r = Random()
+            var found = false;
+            var id: Int;
+            do {
+                id = r.nextInt(10000);
+                if (results.get(id) != null) {
+                    found = true;
+                } else {
+                    found = false;
+                }
+            } while (found)
+
+            results.put(id, measurements)
+            call.response.header("Access-Control-Allow-Origin", "*")
+            call.respondText("measurements are stored with key " + id, ContentType.Application.Any)
         }
 
         options("/{...}") {

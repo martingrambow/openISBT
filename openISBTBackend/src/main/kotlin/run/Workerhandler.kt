@@ -1,9 +1,12 @@
 package run
 
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import de.tuberlin.mcc.patternconfiguration.PatternConfiguration
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.put
+import measurement.PatternMeasurement
 import workload.PatternRequest
 import java.net.ConnectException
 
@@ -211,12 +214,48 @@ class Workerhandler {
         return true
     }
 
+    suspend fun collectResults(workers: MutableMap<Int, Worker>) : ArrayList<PatternMeasurement>{
+        var results: ArrayList<PatternMeasurement> = ArrayList()
+
+        if (workers.values.size == 0) {
+            println("No workers given")
+            return results
+        }
+
+        //Request measurements from workers
+        for (w in workers.values) {
+            try {
+                var client = HttpClient()
+                var url = buildURL(w, "/api/getMeasurements")
+                val response = client.get<String>(url)
+
+                for (m in loadMeasurement(response)) {
+                    results.add(m)
+                }
+
+                client.close()
+
+            } catch (e:ConnectException) {
+                println("Error while starting benchmark run for worker " + w.id + ", " + w.url + ": " + e.toString())
+            }
+        }
+
+        return results
+    }
+
     private fun buildURL(w: Worker, path:String) : String{
         var url:String = w.url + path
         if (!url.startsWith("http://")) {
             url = "http://" + url
         }
         return url
+    }
+
+    private fun loadMeasurement(measurements: String): Array<PatternMeasurement> {
+        val gsonBuilder:GsonBuilder = GsonBuilder()
+        val customGson: Gson = gsonBuilder.create()
+        var measurement = customGson.fromJson(measurements, Array<PatternMeasurement>::class.java)
+        return measurement
     }
 
 }

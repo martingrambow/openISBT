@@ -9,12 +9,14 @@ import java.net.ConnectException
 
 class Statisticshandler () {
 
-    val log = LoggerFactory.getLogger("measurements.Statisticshandler")
+    val log = LoggerFactory.getLogger("Statisticshandler")
 
     var listener: String = ""
     private var count = 0
     var total = 0
     private var lastNotification = 0
+
+    private var measurements = ArrayList<PatternMeasurement>()
 
     @Synchronized
     fun addDone() {
@@ -31,9 +33,19 @@ class Statisticshandler () {
 
     }
 
+    @Synchronized
+    fun addMeasurement(measurement: PatternMeasurement) {
+        measurements.add(measurement)
+    }
+
+    fun getMeasurements() : ArrayList<PatternMeasurement> {
+        return measurements
+    }
+
     fun reset() {
         count = 0
         lastNotification = 0
+        measurements = ArrayList()
     }
 
     suspend fun notifyListener(message: String) {

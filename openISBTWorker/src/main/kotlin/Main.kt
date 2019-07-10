@@ -112,6 +112,19 @@ fun Application.module() {
             call.respondText("OK", ContentType.Text.Plain)
         }
 
+        get("/api/getMeasurements") {
+            log.info("Measurements requested")
+
+            val list = statisticshandler.getMeasurements()
+            if (list != null) {
+                call.response.header("Access-Control-Allow-Origin", "*")
+                call.respondText(GsonBuilder().create().toJson(list), ContentType.Text.Plain)
+            } else {
+                call.response.header("Access-Control-Allow-Origin", "*")
+                call.respondText("No measurements", ContentType.Text.Plain)
+            }
+        }
+
         options("/{...}") {
             log.info("OPTIONS CALLED")
             call.response.header("Access-Control-Allow-Origin", "*")

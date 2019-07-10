@@ -17,6 +17,7 @@ class run {
     var nextWorkerID = 1
     var workersetID = -1
     var workloadID:Int = -1
+    var measurementsID:Int = -1
 
     var notificationListenerID:Int = -1
     var benchmarkRunFinished = true
@@ -226,6 +227,23 @@ class run {
 
     private fun collectResults() {
         appendToStatus("Collecting results...")
+
+        val req = XMLHttpRequest()
+        req.onloadend = fun(event: Event) {
+            var text = req.responseText
+            measurementsID = -1
+            val parts = req.responseText.split(" ")
+            if (parts.size == 6) {
+                measurementsID = parts[5].toInt()
+                document.cookie = "measurementsID=" + parts[5]
+                appendToStatus("ok\n")
+                appendToStatus("Response: " + text)
+            } else {
+                appendToStatus("Error: " + text + "\n")
+            }
+        }
+        req.open("GET", "http://localhost:8080/api/run/collect/" + workersetID, true)
+        req.send()
     }
 
     fun addWorker(url:String = "") {
