@@ -1,3 +1,5 @@
+package measurements
+
 import io.ktor.client.HttpClient
 import io.ktor.client.request.post
 import kotlinx.coroutines.GlobalScope
@@ -7,7 +9,7 @@ import java.net.ConnectException
 
 class Statisticshandler () {
 
-    val log = LoggerFactory.getLogger("Statisticshandler")
+    val log = LoggerFactory.getLogger("measurements.Statisticshandler")
 
     var listener: String = ""
     private var count = 0

@@ -78,6 +78,25 @@ class Workerhandler {
         return false
     }
 
+    suspend fun setID(worker: Worker) : Boolean {
+        try {
+            var client = HttpClient()
+            var url = buildURL(worker, "/api/setID")
+            val response = client.put<String>(url, {
+                body = "" + worker.id.toString()
+            })
+            client.close()
+            if (response == "OK") {
+                return true
+            } else {
+                println("Error while setID for worker " + worker.id + ", " + worker.url + ": " + response)
+            }
+        } catch (e:ConnectException) {
+            println("Error while setID for worker " + worker.id + ", " + worker.url + ": " + e.toString())
+        }
+        return false
+    }
+
     suspend fun setThreads(worker: Worker, threads:Int) : Boolean {
         try {
             var client = HttpClient()

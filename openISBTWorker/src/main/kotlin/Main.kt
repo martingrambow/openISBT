@@ -11,11 +11,12 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import org.slf4j.LoggerFactory
+import measurements.Statisticshandler
 import workload.PatternRequest
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
+var id:Int = -1
 var status:String = "waiting"
 var workload: Array<PatternRequest>? = null
 var endpoint:String = ""
@@ -57,7 +58,7 @@ fun Application.module() {
             executor = Executors.newFixedThreadPool(threads)
             if (workloadList != null) {
                 for (patternRequest in workloadList) {
-                    val worker = WorkloadRunnable(patternRequest, statisticshandler, endpoint)
+                    val worker = WorkloadRunnable(patternRequest, statisticshandler, endpoint, id)
                     executor.execute(worker)
                 }
             }
@@ -93,6 +94,13 @@ fun Application.module() {
         put("/api/setEndpoint") {
             endpoint = call.receiveText()
             log.info("New endpoint is " + endpoint)
+            call.response.header("Access-Control-Allow-Origin", "*")
+            call.respondText("OK", ContentType.Text.Plain)
+        }
+
+        put("/api/setID") {
+            id = call.receiveText().toInt()
+            log.info("New ID is " + id)
             call.response.header("Access-Control-Allow-Origin", "*")
             call.respondText("OK", ContentType.Text.Plain)
         }

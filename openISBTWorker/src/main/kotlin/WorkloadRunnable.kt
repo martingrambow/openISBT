@@ -1,8 +1,4 @@
 import com.google.gson.GsonBuilder
-import com.google.gson.JsonElement
-import com.google.gson.JsonObject
-import com.google.gson.JsonParser
-import com.google.gson.stream.JsonReader
 import io.ktor.client.HttpClient
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
@@ -12,17 +8,17 @@ import io.ktor.client.response.HttpResponse
 import io.ktor.client.response.readText
 import io.ktor.http.*
 import io.ktor.http.content.TextContent
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import linking.LinkController
+import measurements.ApiRequestMeasurement
+import measurements.PatternMeasurement
+import measurements.Statisticshandler
 import org.slf4j.LoggerFactory
 import workload.ApiRequest
 import workload.PatternRequest
 import java.lang.Exception
-import java.net.URLEncoder
 
-class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler: Statisticshandler, val endpoint:String) : Runnable {
+class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler: Statisticshandler, val endpoint:String, val workerID:Int) : Runnable {
 
     val log = LoggerFactory.getLogger("WorkloadRunnable");
 
@@ -31,14 +27,21 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
     }
 
     override fun run() {
-        log.debug("Running pattern " + patternRequest.abstractPattern.name + ": ID=" + patternRequest.id + ", " + patternRequest.apiRequests.size + " API requests")
 
+        var measurement = PatternMeasurement(patternRequest.resource, patternRequest.abstractPattern.name, patternRequest.id, workerID)
+        measurement.start = System.currentTimeMillis()
+
+        log.debug("Running pattern " + patternRequest.abstractPattern.name + ": ID=" + patternRequest.id + ", " + patternRequest.apiRequests.size + " API requests")
         var abstractValues: MutableMap<String, ApiRequest> = HashMap()
 
         for (i in 0..patternRequest.apiRequests.size - 1) {
+
             var apiRequest = patternRequest.apiRequests.get(i)
             var abstractOperation = patternRequest.abstractPattern.sequence.get(i)
             log.debug("" + patternRequest.id + ": Running " + abstractOperation.operation + " against " + apiRequest.path)
+
+            var apiMeasurement = ApiRequestMeasurement(apiRequest.path, abstractOperation.operation, i)
+            apiMeasurement.start = System.currentTimeMillis()
 
             if (abstractOperation.input != null) {
 
@@ -156,8 +159,12 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
             if (abstractOperation.output != null) {
                 abstractValues.put(abstractOperation.output, apiRequest)
             }
+
+            apiMeasurement.end = System.currentTimeMillis()
+            measurement.apiRequestMeasurements.add(apiMeasurement)
         }
-        Thread.sleep(500)
+        measurement.end = System.currentTimeMillis()
+        log.debug("Created Measurement: " + GsonBuilder().create().toJson(measurement))
         statisticshandler.addDone()
     }
 

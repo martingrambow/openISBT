@@ -29,26 +29,15 @@ import kotlin.js.Json
 
 external fun require(module:String):dynamic
 
-class PatternRequest(var id: Int, var abstractPattern: AbstractPattern) {
+class PatternRequest(var id: Int, var resource: String, var abstractPattern: AbstractPattern) {
 
 
     var apiRequests : Array<ApiRequest> = arrayOf()
 
     fun fakeSchema(schema: Json) : Json {
-
-        println("BEFORE")
-
-        //var faker = require("faker")
-        //var randomName = faker.name.findName();
-        //println("NAME: " + randomName)
-
-
         var jsf = require("json-schema-faker")
         js("jsf.extend('faker', function(){var faker = require('faker'); return faker;});")
         var pud = jsf.generate(schema)
-        //var pud = js("jsf.generate({\"type\":\"string\", \"faker\":\"internet.userName\"})")
-        println("PUD: " + pud)
-
         return pud
     }
 

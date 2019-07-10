@@ -298,9 +298,13 @@ fun Application.module() {
                 for (w in worker.values) {
                     if (noErrors && workerhandler.clearWorker(w)) {
                         if(noErrors && workerhandler.setListener(w, id)) {
-                            if (noErrors && workerhandler.setEndpoint(w, endpoint!!)) {
-                                if (noErrors && workerhandler.setThreads(w, w.threads)) {
-                                    //Everything ok
+                            if (noErrors && workerhandler.setID(w)) {
+                                if (noErrors && workerhandler.setEndpoint(w, endpoint!!)) {
+                                    if (noErrors && workerhandler.setThreads(w, w.threads)) {
+                                        //Everything ok
+                                    } else {
+                                        noErrors = false
+                                    }
                                 } else {
                                     noErrors = false
                                 }
