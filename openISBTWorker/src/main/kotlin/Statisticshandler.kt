@@ -2,9 +2,12 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.post
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.slf4j.LoggerFactory
 import java.net.ConnectException
 
 class Statisticshandler () {
+
+    val log = LoggerFactory.getLogger("Statisticshandler")
 
     var listener: String = ""
     private var count = 0
@@ -32,7 +35,7 @@ class Statisticshandler () {
     }
 
     suspend fun notifyListener(message: String) {
-        println("notifying listener: " + message)
+        log.info("notifying listener: " + message)
         try {
             var client = HttpClient()
             var url = listener
@@ -41,10 +44,10 @@ class Statisticshandler () {
             })
             client.close()
             if (response != "OK") {
-                println("Unable to notify listener, url = " + url)
+                log.error("Unable to notify listener, url = " + url)
             }
         } catch (e: ConnectException) {
-            println("Unable to notify listener " + listener)
+            log.error("Unable to notify listener " + listener)
         }
     }
 }

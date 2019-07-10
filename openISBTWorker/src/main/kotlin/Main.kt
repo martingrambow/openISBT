@@ -11,6 +11,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.slf4j.LoggerFactory
 import workload.PatternRequest
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -36,7 +37,7 @@ fun Application.module() {
     install(Routing) {
 
         get("/api/getStatus") {
-            println("Responed " + status)
+            log.info("Responed " + status)
             call.response.header("Access-Control-Allow-Origin", "*")
             call.respondText(status, ContentType.Text.Plain)
         }
@@ -44,12 +45,12 @@ fun Application.module() {
             val content = call.receiveText()
             workload = loadWorkload(content)
             statisticshandler.total = workload!!.size
-            println("Got new workload with " + workload?.size + " items")
+            log.info("Got new workload with " + workload?.size + " items")
             call.response.header("Access-Control-Allow-Origin", "*")
             call.respondText("OK", ContentType.Application.Any)
         }
         get("/api/startBenchmark") {
-            println("Start benchmark run...")
+            log.info("Start benchmark run...")
             status = "running"
             val workloadList = workload?.asList()
             statisticshandler.reset()
@@ -63,10 +64,10 @@ fun Application.module() {
             GlobalScope.launch {
                 executor.shutdown()
                 executor.awaitTermination(2, TimeUnit.HOURS)
-                println("Worker DONE!")
+                log.info("Worker DONE!")
                 status = "waiting"
             }
-            println("Started.")
+            log.info("Benchmark started.")
 
             call.response.header("Access-Control-Allow-Origin", "*")
             call.respondText("OK", ContentType.Application.Json)
@@ -74,7 +75,7 @@ fun Application.module() {
 
         put("/api/setListener") {
             statisticshandler.listener = call.receiveText()
-            println("New listener is " + statisticshandler.listener)
+            log.info("New listener is " + statisticshandler.listener)
             call.response.header("Access-Control-Allow-Origin", "*")
             call.respondText("OK", ContentType.Text.Plain)
         }
@@ -84,21 +85,21 @@ fun Application.module() {
             statisticshandler.reset()
             endpoint = ""
             status = "waiting"
-            println("Cleared")
+            log.info("Cleared")
             call.response.header("Access-Control-Allow-Origin", "*")
             call.respondText("OK", ContentType.Application.Json)
         }
 
         put("/api/setEndpoint") {
             endpoint = call.receiveText()
-            println("New endpoint is " + endpoint)
+            log.info("New endpoint is " + endpoint)
             call.response.header("Access-Control-Allow-Origin", "*")
             call.respondText("OK", ContentType.Text.Plain)
         }
 
         put("/api/setThreads") {
             threads = call.receiveText().toInt()
-            println("New thread number is " + threads)
+            log.info("New thread number is " + threads)
             call.response.header("Access-Control-Allow-Origin", "*")
             call.respondText("OK", ContentType.Text.Plain)
         }
