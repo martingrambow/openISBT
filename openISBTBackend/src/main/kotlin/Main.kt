@@ -427,6 +427,15 @@ fun Application.module() {
             call.respondText("measurements are stored with key " + id, ContentType.Application.Any)
         }
 
+        get("/api/results/{measurementsID?}") {
+            val id = Integer.parseInt(call.parameters.get("measurementsID"))
+
+            val measurements = results.getOrDefault(id, "not found")
+            call.response.header("Access-Control-Allow-Origin", "*")
+            val gson:Gson = GsonBuilder().create()
+            call.respondText(gson.toJson(measurements), ContentType.Application.Json)
+        }
+
         options("/{...}") {
             log.info("OPTIONS CALLED")
             call.response.header("Access-Control-Allow-Origin", "*")

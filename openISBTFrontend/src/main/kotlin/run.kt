@@ -57,6 +57,12 @@ class run {
         req2.open("GET", "http://localhost:8080/api/oasFiles/" + oas + "/endpoints", true)
         req2.send()
 
+        val btnNext = document.getElementById("button_next")
+        btnNext?.addEventListener("click", fun(event: Event) {
+            handleNextButtonClick()
+
+        })
+
         val btnAddWorker = document.getElementById("btnAddWorker")
         btnAddWorker?.addEventListener("click", fun(event: Event) {
             addWorker()
@@ -97,6 +103,10 @@ class run {
         }
 
 
+    }
+
+    private fun handleNextButtonClick() {
+        redirectToUrl("results.html")
     }
 
     private fun btnBenchmarkClicked() {
@@ -237,13 +247,18 @@ class run {
                 measurementsID = parts[5].toInt()
                 document.cookie = "measurementsID=" + parts[5]
                 appendToStatus("ok\n")
-                appendToStatus("Response: " + text)
+                showNextButton()
             } else {
                 appendToStatus("Error: " + text + "\n")
             }
         }
         req.open("GET", "http://localhost:8080/api/run/collect/" + workersetID, true)
         req.send()
+    }
+
+    private fun showNextButton() {
+        var btnNext = document.getElementById("button_next") as HTMLButtonElement
+        btnNext.removeClass("hidden")
     }
 
     fun addWorker(url:String = "") {

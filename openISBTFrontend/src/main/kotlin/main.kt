@@ -33,6 +33,11 @@ fun main(args: Array<String>) {
                 val p = run()
                 p.init()
             }
+
+            if (contentName == "results") {
+                val p = results()
+                p.init()
+            }
         }
     }
 }
