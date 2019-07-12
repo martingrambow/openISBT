@@ -1,6 +1,7 @@
 package linking.linkerunits
 
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonObject
 import linking.Linker
 import linking.LinkerUtil
 import org.slf4j.LoggerFactory
@@ -23,11 +24,13 @@ class ParameterNameLinker : Linker {
                 var responseText = dependingRequest.response
                 if (responseText.contains(p.first)) {
                     log.debug("Found " + p.first + " in previous response text, create JSON elemnt ... ")
-                    var responseJson = GsonBuilder().create().toJsonTree(responseText)
+                    var responseJson = GsonBuilder().create().fromJson(responseText, JsonObject::class.java)
                     var value = LinkerUtil().getJSonValueForKey(p.first, responseJson, abstractOperation.selector)
                     if (value != null) {
                         filledValue = value.asString
-                        log.debug(p.first + " filled with " + filledValue)
+                        log.debug("Found " + p.first + " in previous response text and filled with " + filledValue)
+                    } else {
+                        log.warn("Found " + p.first + " in previous response text but value was null")
                     }
                 }
             }

@@ -46,8 +46,12 @@ class PatternRequest(var id: Int, var resource: String, var abstractPattern: Abs
         var requestList = ArrayList<ApiRequest>()
 
         for (operationList in operationSequence) {
-            val idx = (0 .. operationList.size-1).shuffled().first()
+            var idx = (0 .. operationList.size-1).shuffled().first()
             var operation = operationList.get(idx)
+            while (operation.requests <= 0) {
+                idx = (0 .. operationList.size-1).shuffled().first()
+                operation = operationList.get(idx)
+            }
             //println("Operation to fill: " + JSON.stringify(operation))
 
             var req = ApiRequest()
@@ -94,6 +98,7 @@ class PatternRequest(var id: Int, var resource: String, var abstractPattern: Abs
                 req.body = v
             }
             requestList.add(req)
+            operation.requests--
         }
         apiRequests = requestList.toTypedArray()
     }

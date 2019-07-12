@@ -384,8 +384,11 @@ fun Application.module() {
             }
 
             if (message.contains("100%")) {
+                log.debug("Check if all workers are finished...")
                 var allDone = workerhandler.ensureAllWorkerStatus(workerSets.getOrDefault(workersetID, HashMap()), "waiting")
+                log.debug("All workers finished: " + allDone)
                 if (allDone && list != null) {
+                    log.debug("Send server notification..")
                     list.add(ServerNotification(workersetID, -1, "All workers finished"))
                 }
             }

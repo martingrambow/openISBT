@@ -79,6 +79,7 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
                                             headers.append(h.first, h.second)
                                         }
                                     }
+                                    headers.append("Accept", "application/json")
                                 }
                                 var responseText = response.readText()
                                 log.info("" + patternRequest.id + ": Responded (" + response.status.value + ") " + responseText)
@@ -98,6 +99,7 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
                                             headers.append(h.first, h.second)
                                         }
                                     }
+                                    headers.append("Accept", "application/json")
 
                                 }
                                 var responseText = response.readText()
@@ -118,6 +120,7 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
                                             headers.append(h.first, h.second)
                                         }
                                     }
+                                    headers.append("Accept", "application/json")
                                 }
                                 var responseText = response.readText()
                                 log.info("" + patternRequest.id + ": Responded (" + response.status.value + ") " + responseText)
@@ -137,6 +140,7 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
                                             headers.append(h.first, h.second)
                                         }
                                     }
+                                    headers.append("Accept", "application/json")
 
                                 }
                                 var responseText = response.readText()

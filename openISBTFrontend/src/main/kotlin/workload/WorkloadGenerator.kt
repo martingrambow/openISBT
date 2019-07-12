@@ -35,6 +35,7 @@ class WorkloadGenerator {
                     for (i in 1 .. patternMapping.requests) {
                         val id = getNextID((total * 1.2).toInt())
                         var req = PatternRequest(id, topLevelMapping.resourcePath, patternMapping.aPattern)
+
                         req.generateApiRequests(patternMapping.operationSequence)
                         patternRequests.put(id, req)
                         val current = patternRequests.size

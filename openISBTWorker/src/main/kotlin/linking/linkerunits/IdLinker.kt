@@ -1,6 +1,7 @@
 package linking.linkerunits
 
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonObject
 import linking.Linker
 import linking.LinkerUtil
 import org.slf4j.LoggerFactory
@@ -24,7 +25,7 @@ class IdLinker : Linker {
                     var responseText = dependingRequest.response
                     if (responseText.toLowerCase().contains("id")) {
                         log.debug("Found some id in previous response text, create JSON elemnt ... ")
-                        var responseJson = GsonBuilder().create().toJsonTree(responseText)
+                        var responseJson = GsonBuilder().create().fromJson(responseText, JsonObject::class.java)
                         var value = LinkerUtil().getJSonValueForKey("id", responseJson, abstractOperation.selector)
                         if (value == null) {
                             value = LinkerUtil().getJSonValueForKey("ID", responseJson, abstractOperation.selector)

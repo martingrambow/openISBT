@@ -135,6 +135,9 @@ class Workerhandler {
                 allStatus = false
             }
         }
+        if (!allStatus) {
+            println("not all workers are " + status)
+        }
         return allStatus
     }
 
