@@ -118,16 +118,12 @@
             "style": "form",
             "explode": false,
             "schema": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "default": "available",
-                "enum": [
-                  "available",
-                  "pending",
-                  "sold"
-                ]
-              }
+              "type": "string",
+              "enum": [
+                "available",
+                "pending",
+                "sold"
+              ]
             }
           }
         ],
@@ -182,15 +178,12 @@
             "style": "form",
             "explode": false,
             "schema": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "enum": [
-                  "cat",
-                  "dog",
-                  "bird"
-                ]
-              }
+              "type": "string",
+              "enum": [
+                "cat",
+                "dog",
+                "bird"
+              ]
             }
           }
         ],

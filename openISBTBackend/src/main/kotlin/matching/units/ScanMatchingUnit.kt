@@ -35,7 +35,7 @@ class ScanMatchingUnit : MatchingUnit{
                                 if (schema.properties != null) {
                                     for (p in schema.properties.entrySet()) {
                                         //todo: improve list detection
-                                        if (path.contains("cards") && p.value.toString().contains("\"type\":\"array\"")) {
+                                        if (path.contains("customers") && p.value.toString().contains("\"type\":\"array\"")) {
                                             listReturned = true;
                                         }
                                     }
