@@ -8,9 +8,12 @@ import io.ktor.http.ContentType
 import mapping.PatternOperation
 import matching.MatchingUnit
 import matching.MatchingUtil
+import org.slf4j.LoggerFactory
 import patternconfiguration.AbstractPatternOperation
 
 class UpdateMatchingUnit : MatchingUnit{
+
+    val log = LoggerFactory.getLogger("UpdateMatchingUnit");
 
     override fun getSupportedOperation(): String {
         return AbstractPatternOperation.UPDATE.name;
@@ -22,9 +25,8 @@ class UpdateMatchingUnit : MatchingUnit{
             operation.path = path
 
             //Determine input and output values
-            println("UPDATE:")
             var updateObject = pathItemObject.put
-            println("    " + GsonBuilder().create().toJson(updateObject))
+            log.debug("    " + GsonBuilder().create().toJson(updateObject))
             if (updateObject.requestBody != null) {
                 //Operation requires some request body
                 var body = MatchingUtil().parseRequestBody(updateObject.requestBody, spec)
@@ -34,6 +36,9 @@ class UpdateMatchingUnit : MatchingUnit{
             }
             if (updateObject.parameters != null) {
                 operation.parameters = MatchingUtil().parseParameter(updateObject.parameters, spec)
+                for (headerparam in MatchingUtil().parseHeaderParameter(updateObject.parameters, spec)) {
+                    operation.headers.add(Pair(headerparam.get("name").asString, headerparam.getAsJsonObject("schema")))
+                }
             }
             if (updateObject.security != null) {
                 var header = MatchingUtil().parseApiKey(updateObject.security, spec)

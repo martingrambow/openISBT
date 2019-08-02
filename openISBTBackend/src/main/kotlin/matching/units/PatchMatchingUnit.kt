@@ -1,48 +1,47 @@
 package matching.units
 
 import com.google.gson.GsonBuilder
-import com.google.gson.JsonObject
-import de.tuberlin.mcc.openapispecification.*
+import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
+import de.tuberlin.mcc.openapispecification.PathItemObject
 import de.tuberlin.mcc.patternconfiguration.AbstractOperation
 import io.ktor.http.ContentType
 import mapping.PatternOperation
 import matching.MatchingUnit
 import matching.MatchingUtil
-import matching.ReferenceResolver
 import org.slf4j.LoggerFactory
 import patternconfiguration.AbstractPatternOperation
 
-class CreateMatchingUnit : MatchingUnit{
+class PatchMatchingUnit : MatchingUnit{
 
-    val log = LoggerFactory.getLogger("CreateMatchingUnit");
+    val log = LoggerFactory.getLogger("PatchMatchingUnit");
 
     override fun getSupportedOperation(): String {
-        return AbstractPatternOperation.CREATE.name;
+        return AbstractPatternOperation.UPDATE.name;
     }
 
     override fun match(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path: String): PatternOperation? {
-        if (pathItemObject.post != null) {
-            var operation = PatternOperation(abstractOperation, AbstractPatternOperation.CREATE)
+        if (pathItemObject.patch != null) {
+            var operation = PatternOperation(abstractOperation, AbstractPatternOperation.PATCH)
             operation.path = path
 
             //Determine input and output values
-            var postObject = pathItemObject.post
-            log.debug("    " + GsonBuilder().create().toJson(postObject))
-            if (postObject.requestBody != null) {
+            var patchObject = pathItemObject.patch
+            log.debug("    " + GsonBuilder().create().toJson(patchObject))
+            if (patchObject.requestBody != null) {
                 //Operation requires some request body
-                var body = MatchingUtil().parseRequestBody(postObject.requestBody, spec)
+                var body = MatchingUtil().parseRequestBody(patchObject.requestBody, spec)
                 if (body != null) {
                     operation.requiredBody = body
                 }
             }
-            if (postObject.parameters != null) {
-                operation.parameters = MatchingUtil().parseParameter(postObject.parameters, spec)
-                for (headerparam in MatchingUtil().parseHeaderParameter(postObject.parameters, spec)) {
+            if (patchObject.parameters != null) {
+                operation.parameters = MatchingUtil().parseParameter(patchObject.parameters, spec)
+                for (headerparam in MatchingUtil().parseHeaderParameter(patchObject.parameters, spec)) {
                     operation.headers.add(Pair(headerparam.get("name").asString, headerparam.getAsJsonObject("schema")))
                 }
             }
-            if (postObject.security != null) {
-                var header = MatchingUtil().parseApiKey(postObject.security, spec)
+            if (patchObject.security != null) {
+                var header = MatchingUtil().parseApiKey(patchObject.security, spec)
                 if (header != null) {
                     operation.headers.add(header)
                 }
@@ -52,7 +51,5 @@ class CreateMatchingUnit : MatchingUnit{
         }
         return null
     }
-
-
 
 }

@@ -10,7 +10,19 @@ class MatchingUtil {
     fun parseParameter(parameters : Array<ParameterObject>, spec: OpenAPISPecifcation) : ArrayList<JsonObject> {
         var result : ArrayList<JsonObject> = ArrayList()
         for (entry in parameters) {
-            result.add(ReferenceResolver().resolveReferencesInJsonObject(GsonBuilder().create().toJsonTree(entry).asJsonObject, spec))
+            if (entry.`in` == "path" || entry.`in`=="query") {
+                result.add(ReferenceResolver().resolveReferencesInJsonObject(GsonBuilder().create().toJsonTree(entry).asJsonObject, spec))
+            }
+        }
+        return result
+    }
+
+    fun parseHeaderParameter(parameters : Array<ParameterObject>, spec: OpenAPISPecifcation) : ArrayList<JsonObject> {
+        var result : ArrayList<JsonObject> = ArrayList()
+        for (entry in parameters) {
+            if (entry.`in` == "header") {
+                result.add(ReferenceResolver().resolveReferencesInJsonObject(GsonBuilder().create().toJsonTree(entry).asJsonObject, spec))
+            }
         }
         return result
     }
@@ -43,7 +55,13 @@ class MatchingUtil {
             //Currently, we only support json schemes
             var mediaTypeObject = contentObject.get("application/json")
             if (mediaTypeObject == null) {
+                mediaTypeObject = contentObject.get("application/json;charset=UTF-8")
+            }
+            if (mediaTypeObject == null) {
                 mediaTypeObject = contentObject.get("application/x-www-form-urlencoded")
+            }
+            if (mediaTypeObject == null) {
+                mediaTypeObject = contentObject.get("multipart/form-data")
             }
             if (mediaTypeObject != null) {
                 println("    MediaTypeObject: " + GsonBuilder().create().toJson(mediaTypeObject))

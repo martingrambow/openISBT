@@ -19,12 +19,17 @@ class MatchController {
     fun matchPatternOperation(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path:String):PatternOperation? {
         for (unit in matchUnitList) {
             if (abstractOperation.operation.equals(unit.getSupportedOperation())) {
+                log.debug("Check " + abstractOperation.operation + " for path " + path + " ...")
                 var operation: PatternOperation? = unit.match(pathItemObject, abstractOperation, spec, path)
                 if (operation != null) {
                     //successfully matched
                     log.debug(unit.javaClass.name + " matches " + path)
+                    log.debug("-----------")
                     return operation
+                } else {
+                    log.debug(unit.javaClass.name + " does not match " + path)
                 }
+                log.debug("-----------")
             }
         }
         //No matching unit could match the given pathItenObject to given abstract operation

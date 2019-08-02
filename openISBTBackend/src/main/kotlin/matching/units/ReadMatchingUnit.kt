@@ -8,9 +8,12 @@ import io.ktor.http.ContentType
 import mapping.PatternOperation
 import matching.MatchingUnit
 import matching.MatchingUtil
+import org.slf4j.LoggerFactory
 import patternconfiguration.AbstractPatternOperation
 
 class ReadMatchingUnit : MatchingUnit{
+
+    val log = LoggerFactory.getLogger("ReadMatchingUnit");
 
     override fun getSupportedOperation(): String {
         return AbstractPatternOperation.READ.name;
@@ -38,9 +41,8 @@ class ReadMatchingUnit : MatchingUnit{
                 operation.path = path
 
                 //Determine input and output values
-                println("READ:")
                 var getObject = pathItemObject.get
-                println("    " + GsonBuilder().create().toJson(getObject))
+                log.debug("    " + GsonBuilder().create().toJson(getObject))
                 if (getObject.requestBody != null) {
                     //Operation requires some request body
                     var body = MatchingUtil().parseRequestBody(getObject.requestBody, spec)
@@ -51,7 +53,11 @@ class ReadMatchingUnit : MatchingUnit{
                 if (getObject.parameters != null) {
                     operation.parameters = MatchingUtil().parseParameter(getObject.parameters, spec)
                     println("Found " + operation.parameters.size + " parameters")
+                    for (headerparam in MatchingUtil().parseHeaderParameter(getObject.parameters, spec)) {
+                        operation.headers.add(Pair(headerparam.get("name").asString, headerparam.getAsJsonObject("schema")))
+                    }
                 }
+
                 if (getObject.security != null) {
                     var header = MatchingUtil().parseApiKey(getObject.security, spec)
                     if (header != null) {

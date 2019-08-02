@@ -89,7 +89,7 @@ class generate : ProgressListener{
                 fillWorkloadTable()
             }
         }
-        req.open("GET", "http://localhost:8080/api/workload/" + workloadID.toString(), true)
+        req.open("GET", "http://" + Backend.url + ":8080/api/workload/" + workloadID.toString(), true)
         req.send()
     }
 
@@ -133,7 +133,7 @@ class generate : ProgressListener{
                     }
                 }
             }
-            req.open("GET", "http://localhost:8080/api/mapping/" + mappingID, true)
+            req.open("GET", "http://"+ Backend.url + ":8080/api/mapping/" + mappingID, true)
             req.send()
         }
     }
@@ -174,7 +174,7 @@ class generate : ProgressListener{
                     fillWorkloadTable()
                 }
             }
-            req.open("POST", "http://localhost:8080/api/workload", true)
+            req.open("POST", "http://"+ Backend.url + ":8080/api/workload", true)
             req.send(JSON.stringify(workload))
         }
     }

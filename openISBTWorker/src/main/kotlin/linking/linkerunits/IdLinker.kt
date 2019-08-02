@@ -1,6 +1,7 @@
 package linking.linkerunits
 
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import linking.Linker
 import linking.LinkerUtil
@@ -18,14 +19,19 @@ class IdLinker : Linker {
         for (j in 0..currentReqest.parameter.size - 1) {
             var p = currentReqest.parameter[j]
             if (p.first.toLowerCase().contains("id")) {
-                log.debug("Try to fill " + p.first + "(" + p.second + ") with infos from " + GsonBuilder().create().toJson(dependingRequest) + " ...")
+                var dependentText = GsonBuilder().create().toJson(dependingRequest)
+                if (dependentText.length > 200) {
+                    dependentText = dependentText.substring(0,199)
+                }
+                log.debug("Try to fill " + p.first + "(" + p.second + ") with infos from " + dependentText + " ...")
                 var filledValue = ""
 
                 if (dependingRequest.response != null) {
                     var responseText = dependingRequest.response
                     if (responseText.toLowerCase().contains("id")) {
                         log.debug("Found some id in previous response text, create JSON elemnt ... ")
-                        var responseJson = GsonBuilder().create().fromJson(responseText, JsonObject::class.java)
+
+                        var responseJson = GsonBuilder().create().fromJson(responseText, JsonElement::class.java)
                         var value = LinkerUtil().getJSonValueForKey("id", responseJson, abstractOperation.selector)
                         if (value == null) {
                             value = LinkerUtil().getJSonValueForKey("ID", responseJson, abstractOperation.selector)

@@ -14,6 +14,13 @@ class Mapper {
 
         //Determine top level resources
         val resourcePaths = getTopLevelResourcePaths(openApi)
+        log.debug("Top level paths:")
+        for (path in resourcePaths) {
+            log.debug("-> " + path)
+        }
+        log.debug("--------------------")
+        log.debug("Binding starts...")
+
         //and map them to given patternMappingList
         for (path in resourcePaths) {
             log.debug("Top Level Path: " + path)
@@ -25,14 +32,41 @@ class Mapper {
             for (mapping in mapping.patternMappingList) {
                 log.debug("  Pattern " + mapping.aPattern.name + ", supported=" + mapping.supported + ", requests=" + mapping.requests + ":")
                 for (operationlist in mapping.operationSequence) {
-                    log.debug("    NEXT OPERATION")
                     for (entry in operationlist) {
                         log.debug("      Operation: " + entry.aOperation.operation + " path=" + entry.path)
                     }
                 }
-
             }
         }
+
+        //Manually assign /register to /customers (custom binding definition)
+        for (resourceMapping in resourceMappingList) {
+            if (resourceMapping.resourcePath == "/customers") {
+                for (i in 0 .. resourceMapping.patternMappingList.size-1) {
+                    var mapping = resourceMapping.patternMappingList.get(i)
+                    if (mapping.supported == false && mapping.aPattern.name == "CRE") {
+
+                        var createOperations : List<PatternOperation> = ArrayList()
+                        for (tmp in resourceMappingList) {
+                            if (tmp.resourcePath == "/register") {
+                                for (tmp2 in tmp.patternMappingList) {
+                                    if (tmp2.aPattern.name == "CRE") {
+                                        createOperations = tmp2.operationSequence.get(0)
+                                    }
+                                }
+                            }
+                        }
+                        if (createOperations != null) {
+                            resourceMapping.patternMappingList.get(i).operationSequence.set(0, createOperations)
+                        }
+                    }
+                }
+
+                //Recheck pattern support
+                resourceMapping.checkAndSetSupport()
+            }
+        }
+
         return calculateRequests(resourceMappingList, config)
     }
 
@@ -110,7 +144,7 @@ class Mapper {
             tmpRemainingPathsToCheck = ArrayList()
             for (path in remainingPathsToCheck) {
                 var parts = path.split('/');
-                if (parts.size == counter && parts[0] == "") {
+                if ((parts.size == counter && parts[0] == "") || (parts.size == counter+1 && parts[parts.size-1] == "")) {
                     //path ends here and could be a new top level resource, if not already discovered
                     var alreadyCovered = false;
                     //concat possible top level resource path

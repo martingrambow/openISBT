@@ -8,9 +8,12 @@ import io.ktor.http.ContentType
 import mapping.PatternOperation
 import matching.MatchingUnit
 import matching.MatchingUtil
+import org.slf4j.LoggerFactory
 import patternconfiguration.AbstractPatternOperation
 
 class DeleteMatchingUnit : MatchingUnit{
+
+    val log = LoggerFactory.getLogger("DeleteMatchingUnit");
 
     override fun getSupportedOperation(): String {
         return AbstractPatternOperation.DELETE.name;
@@ -22,9 +25,8 @@ class DeleteMatchingUnit : MatchingUnit{
             operation.path = path
 
             //Determine input and output values
-            println("DELETE:")
             var deleteObject = pathItemObject.delete
-            println("    " + GsonBuilder().create().toJson(deleteObject))
+            log.debug("    " + GsonBuilder().create().toJson(deleteObject))
             if (deleteObject.requestBody != null) {
                 //Operation requires some request body
                 var body = MatchingUtil().parseRequestBody(deleteObject.requestBody, spec)
@@ -34,6 +36,9 @@ class DeleteMatchingUnit : MatchingUnit{
             }
             if (deleteObject.parameters != null) {
                 operation.parameters = MatchingUtil().parseParameter(deleteObject.parameters, spec)
+                for (headerparam in MatchingUtil().parseHeaderParameter(deleteObject.parameters, spec)) {
+                    operation.headers.add(Pair(headerparam.get("name").asString, headerparam.getAsJsonObject("schema")))
+                }
             }
 
             if (deleteObject.security != null) {

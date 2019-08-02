@@ -184,7 +184,12 @@
             "schema": {
               "type": "array",
               "items": {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                  "cat",
+                  "dog",
+                  "bird"
+                ]
               }
             }
           }
@@ -867,10 +872,12 @@
         "properties": {
           "id": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "faker": "random.number"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "faker": "lorem.word"
           }
         },
         "description": "A category for a pet",
@@ -898,7 +905,8 @@
         "properties": {
           "id": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "faker": "random.number"
           },
           "username": {
             "type": "string",
@@ -913,7 +921,8 @@
             "faker": "name.lastName"
           },
           "email": {
-            "type": "string"
+            "type": "string",
+            "faker": "internet.email"
           },
           "password": {
             "type": "string"
@@ -955,7 +964,12 @@
             "format": "int64"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "cat",
+              "dog",
+              "bird"
+            ]
           }
         },
         "description": "A tag for a pet",
@@ -974,20 +988,23 @@
           "category",
           "name",
           "photoUrls",
-          "status"
+          "status",
+          "tags"
         ],
         "type": "object",
         "properties": {
           "id": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "faker": "random.number"
           },
           "category": {
             "$ref": "#/components/schemas/Category"
           },
           "name": {
             "type": "string",
-            "example": "doggie"
+            "example": "doggie",
+            "faker": "internet.userName"
           },
           "photoUrls": {
             "type": "array",
@@ -996,7 +1013,8 @@
               "wrapped": true
             },
             "items": {
-              "type": "string"
+              "type": "string",
+              "faker": "internet.url"
             }
           },
           "tags": {

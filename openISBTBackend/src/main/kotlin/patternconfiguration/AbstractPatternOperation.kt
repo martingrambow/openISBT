@@ -1,5 +1,5 @@
 package patternconfiguration
 
 enum class AbstractPatternOperation {
-    CREATE, SCAN, READ, UPDATE, DELETE, UNDEFINED
+    CREATE, SCAN, READ, UPDATE, PATCH, DELETE, UNDEFINED
 }

@@ -17,7 +17,11 @@ class ParameterNameLinker : Linker {
         var changed : Boolean = false;
         for (j in 0..currentReqest.parameter.size - 1) {
             var p = currentReqest.parameter[j]
-            log.debug("Try to fill " + p.first + "(" + p.second + ") with infos from " + GsonBuilder().create().toJson(dependingRequest) + " ...")
+            var dependentText = GsonBuilder().create().toJson(dependingRequest)
+            if (dependentText.length > 200) {
+                dependentText = dependentText.substring(0,199)
+            }
+            log.debug("Try to fill " + p.first + "(" + p.second + ") with infos from " + dependentText + " ...")
             var filledValue = ""
 
             if (dependingRequest.response != null) {

@@ -9,13 +9,6 @@ class WorkloadGenerator {
     var listener:ProgressListener? = null
     private var workload = ArrayList<PatternRequest>()
 
-    suspend fun generateWorkloadAsync(resourceMappings : Array<ResourceMapping>, callback : () -> Unit) :Unit {
-        //GlobalScope.launch {
-        //   generateWorkload(resourceMappings)
-        //    callback()
-        //}
-    }
-
     fun generateWorkload(resourceMappings : Array<ResourceMapping>) {
         patternRequests.clear()
 

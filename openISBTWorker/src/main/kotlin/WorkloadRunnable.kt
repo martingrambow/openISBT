@@ -1,12 +1,13 @@
 import com.google.gson.GsonBuilder
 import io.ktor.client.HttpClient
-import io.ktor.client.request.delete
-import io.ktor.client.request.get
-import io.ktor.client.request.post
-import io.ktor.client.request.put
+import io.ktor.client.request.*
+import io.ktor.client.request.forms.FormDataContent
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
 import io.ktor.client.response.HttpResponse
 import io.ktor.client.response.readText
 import io.ktor.http.*
+import io.ktor.http.content.MultiPartData
 import io.ktor.http.content.TextContent
 import kotlinx.coroutines.runBlocking
 import linking.LinkController
@@ -35,6 +36,8 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
         var abstractValues: MutableMap<String, ApiRequest> = HashMap()
 
         for (i in 0..patternRequest.apiRequests.size - 1) {
+
+            var maxContentLen = 200;
 
             var apiRequest = patternRequest.apiRequests.get(i)
             var abstractOperation = patternRequest.abstractPattern.sequence.get(i)
@@ -72,7 +75,17 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
                             runBlocking {
                                 var response = client.post<HttpResponse>(url) {
                                     method = HttpMethod.Post
-                                    body = TextContent(apiRequest.body.toString(), contentType = ContentType.Application.Json)
+                                    //TODO: improve content type detection
+                                    if (apiRequest.path == "/teams/") {
+                                        body = MultiPartFormDataContent(formData {
+                                            for (entry in apiRequest.body.asJsonObject.entrySet()) {
+                                                append(entry.key, entry.value.toString())
+                                            }
+                                        })
+                                        //body = TextContent(apiRequest.body.toString(), contentType = ContentType.MultiPart.FormData)
+                                    } else {
+                                        body = TextContent(apiRequest.body.toString(), contentType = ContentType.Application.Json)
+                                    }
                                     if (apiRequest.headers != null && apiRequest.headers.size > 0) {
                                         for (h in apiRequest.headers) {
                                             log.debug("Add header: " + h.first + ", " + h.second)
@@ -82,7 +95,11 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
                                     headers.append("Accept", "application/json")
                                 }
                                 var responseText = response.readText()
-                                log.info("" + patternRequest.id + ": Responded (" + response.status.value + ") " + responseText)
+                                var logtext = responseText
+                                if (logtext.length > maxContentLen) {
+                                    logtext = logtext.substring(0, maxContentLen-2) + "..."
+                                }
+                                log.info("" + patternRequest.id + ": Responded (" + response.status.value + ") " + logtext)
                                 apiRequest.response = responseText
                                 apiRequest.status = response.status.value
                                 client.close()
@@ -103,7 +120,11 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
 
                                 }
                                 var responseText = response.readText()
-                                log.info("" + patternRequest.id + ": Responded (" + response.status.value + ") " + responseText)
+                                var logtext = responseText
+                                if (logtext.length > maxContentLen) {
+                                    logtext = logtext.substring(0, maxContentLen-2) + "..."
+                                }
+                                log.info("" + patternRequest.id + ": Responded (" + response.status.value + ") " + logtext)
                                 apiRequest.response = responseText
                                 apiRequest.status = response.status.value
                                 client.close()
@@ -123,7 +144,35 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
                                     headers.append("Accept", "application/json")
                                 }
                                 var responseText = response.readText()
-                                log.info("" + patternRequest.id + ": Responded (" + response.status.value + ") " + responseText)
+                                var logtext = responseText
+                                if (logtext.length > maxContentLen) {
+                                    logtext = logtext.substring(0, maxContentLen-2) + "..."
+                                }
+                                log.info("" + patternRequest.id + ": Responded (" + response.status.value + ") " + logtext)
+                                apiRequest.response = responseText
+                                apiRequest.status = response.status.value
+                                client.close()
+                            }
+                        }
+                        equals("PATCH") -> {
+                            runBlocking {
+                                var response = client.patch<HttpResponse>(url) {
+                                    method = HttpMethod.Patch
+                                    body = TextContent(apiRequest.body.toString(), contentType = ContentType.Application.Json)
+                                    if (apiRequest.headers != null && apiRequest.headers.size > 0) {
+                                        for (h in apiRequest.headers) {
+                                            log.debug("Add header: " + h.first + ", " + h.second)
+                                            headers.append(h.first, h.second)
+                                        }
+                                    }
+                                    headers.append("Accept", "application/json")
+                                }
+                                var responseText = response.readText()
+                                var logtext = responseText
+                                if (logtext.length > maxContentLen) {
+                                    logtext = logtext.substring(0, maxContentLen-2) + "..."
+                                }
+                                log.info("" + patternRequest.id + ": Responded (" + response.status.value + ") " + logtext)
                                 apiRequest.response = responseText
                                 apiRequest.status = response.status.value
                                 client.close()
@@ -144,7 +193,11 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
 
                                 }
                                 var responseText = response.readText()
-                                log.info("" + patternRequest.id + ": Responded (" + response.status.value + ") " + responseText)
+                                var logtext = responseText
+                                if (logtext.length > maxContentLen) {
+                                    logtext = logtext.substring(0, maxContentLen-2) + "..."
+                                }
+                                log.info("" + patternRequest.id + ": Responded (" + response.status.value + ") " + logtext)
                                 apiRequest.response = responseText
                                 apiRequest.status = response.status.value
                                 client.close()

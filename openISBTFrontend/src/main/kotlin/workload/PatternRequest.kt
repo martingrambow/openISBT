@@ -62,6 +62,7 @@ class PatternRequest(var id: Int, var resource: String, var abstractPattern: Abs
                 "SCAN" -> req.method = "GET"
                 "CREATE" -> req.method = "POST"
                 "UPDATE" -> req.method = "PUT"
+                "PATCH" -> req.method = "PATCH"
                 "DELETE" -> req.method = "DELETE"
                 else -> {
                     req.method = "undefined"
@@ -71,11 +72,24 @@ class PatternRequest(var id: Int, var resource: String, var abstractPattern: Abs
             //Call json-schema-faker lib
             var parameterList = ArrayList<Pair<String, Json>>()
             for (p in operation.parameters) {
-                //println("PARAMETER: " +  JSON.stringify(p))
-                //println("SCHEMA: " + JSON.stringify(p.schema))
-
+                println("PARAMETER: " +  JSON.stringify(p))
+                println("SCHEMA: " + JSON.stringify(p.schema))
                 var value =  fakeSchema(p.schema)
-                //println("VALUE: " + value)
+                var jsonString = JSON.stringify(value)
+                println("As String: " + jsonString)
+                if (jsonString.startsWith("[")) {
+                    jsonString = jsonString.substring(2, jsonString.length-2)
+                    println("Minimized: " + jsonString)
+                    var tmp = ""
+                    for (e in jsonString.split("\",\"")) {
+                        println("One value: " + e)
+                        tmp = tmp + e + ","
+                    }
+                    tmp = tmp.substring(0, tmp.length-1)
+                    println("Result: " + tmp)
+                    value = JSON.parse("\"" + tmp + "\"")
+                }
+                println("VALUE: " + value)
                 parameterList.add(Pair(p.name, value))
                 //println("Added " + p.name + " " + value)
             }

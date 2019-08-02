@@ -33,12 +33,21 @@ class ResourceMapping {
         matchController.registerMatchingUnit(CreateMatchingUnit())
         matchController.registerMatchingUnit(DeleteMatchingUnit())
         matchController.registerMatchingUnit(UpdateMatchingUnit())
+        matchController.registerMatchingUnit(PatchMatchingUnit())
         matchController.registerMatchingUnit(ScanMatchingUnit())
         matchController.registerMatchingUnit(ReadMatchingUnit())
 
         for (p in config.patterns) {
             //Add the pattern mapping for the current pattern to list of mappings
             this.patternMappingList.add(getPatternMappingInclOperations(p, spec, this.resourcePath))
+        }
+        this.checkAndSetSupport()
+    }
+
+    fun checkAndSetSupport() {
+
+        for (mapping in patternMappingList) {
+            setMappingSupportBasedOnOperationSequences(mapping)
         }
 
         //This resource mapping is only supported if all pattern mappings are supported
@@ -84,6 +93,12 @@ class ResourceMapping {
             mapping.operationSequence.add(patternOperations)
         }
 
+        setMappingSupportBasedOnOperationSequences(mapping)
+
+        return mapping
+    }
+
+    fun setMappingSupportBasedOnOperationSequences(mapping: PatternMapping) {
         //The given pattern is supported by this topLevelPath if at least one element is in each operation sequence list
         mapping.supported = true
         for (list in mapping.operationSequence) {
@@ -92,8 +107,6 @@ class ResourceMapping {
                 mapping.supported = false;
             }
         }
-
-        return mapping
     }
 
     fun matchPathItemObject(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path:String):PatternOperation? {

@@ -48,7 +48,7 @@ class Workerhandler {
             var client = HttpClient()
             var url = buildURL(worker, "/api/setListener")
             val response = client.put<String>(url, {
-                body = "http://localhost:8080/api/run/notification/" + workersetID + "/" + worker.id
+                body = "http://ec2-54-229-4-50.eu-west-1.compute.amazonaws.com:8080/api/run/notification/" + workersetID + "/" + worker.id
             })
             client.close()
             if (response == "OK") {
