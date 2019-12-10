@@ -23,10 +23,10 @@ you're benchmarking the client and should start at least one more instance with 
 0. Setup Backend (details in the backend folder).
 1. Clone this repository: `git clone https://github.com/martingrambow/openISBT.git`
 2. Go to openISBTBackend folder: `cd openISBT/openISBTBackend/`
-3. Build/Compile backend: `gradle clean build jar` 
-(jar is in /build/libs/openISBTBackend-1.0-SNAPSHOT.jar)
-4.(1) Start backend: `java -jar build/libs/openISBTBackend-1.0-SNAPSHOT.jar`
-4.(2) Start backend as background task and write output into file: `java -jar build/libs/openISBTBackend-1.0-SNAPSHOT.jar > backend.log &`
+3. Build/Compile backend: `gradle clean build jar` (jar is in /build/libs/openISBTBackend-1.0-SNAPSHOT.jar)
+4. Start backend:
+   * `java -jar build/libs/openISBTBackend-1.0-SNAPSHOT.jar` 
+   * start in background and write output into file: `java -jar build/libs/openISBTBackend-1.0-SNAPSHOT.jar > backend.log &`
 
 ## Frontend
 0. Setup Frontend (details in frontend folder).
