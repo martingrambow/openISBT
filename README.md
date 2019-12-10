@@ -10,16 +10,23 @@ you're benchmarking the client and should start at least one more instance with 
 
 ## Setup
 
+### Prerequisites
+- Git
+- Java 1.8
+- Gradle
+
 ### SUT
 1. Setup your REST service and note the url.
 2. Find or generate the openAPI3.0 description file.
 
 ### Backend
 0. Setup Backend (details in the backend folder).
-1. Clone this repository: 
-2. Go to openISBTBackend folder: cd
-3. Build backend: gradle clean build
-4. Start backend:
+1. Clone this repository: `git clone https://github.com/martingrambow/openISBT.git`
+2. Go to openISBTBackend folder: `cd openISBT/openISBTBackend/`
+3. Build/Compile backend: `gradle clean build jar` 
+(jar is in /build/libs/openISBTBackend-1.0-SNAPSHOT.jar)
+4.(1) Start backend: `java -jar build/libs/openISBTBackend-1.0-SNAPSHOT.jar`
+4.(2) Start backend as background task and write output into file: `java -jar build/libs/openISBTBackend-1.0-SNAPSHOT.jar > backend.log &`
 
 ## Frontend
 0. Setup Frontend (details in frontend folder).
