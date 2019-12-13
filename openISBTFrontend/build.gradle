@@ -24,9 +24,6 @@ repositories {
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
     testCompile "org.jetbrains.kotlin:kotlin-test-js:$kotlin_version"
-    //compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.0-M1"
-    //compile "org.jetbrains.kotlinx:kotlinx-coroutines-core-common:1.3.0-M1"
-    //compile "org.jetbrains.kotlinx:kotlinx-coroutines-core-js:1.3.0-M1"
 }
 
 kotlinFrontend {
@@ -37,6 +34,8 @@ kotlinFrontend {
         dependency "kotlin"
         dependency "faker"
         dependency "json-schema-faker"
+        dependency "json-schema-ref-parser"
+        dependency "jsonpath"
     }
 
     webpackBundle {
@@ -45,8 +44,7 @@ kotlinFrontend {
         contentPath = file('web') // a file that represents a directory to be served by dev server)
         publicPath = "/"  // web prefix
         host = "localhost" // dev server host
-        port = 80  // dev server port
-        //stats = "errors-only"  // log level
+        port = 9090  // dev server port
     }
 }
 
@@ -83,12 +81,6 @@ build.doLast {
         from "${buildDir}/resources/main"
         into "${projectDir}/web"
     }
-
-    //copy {
-    //    includeEmptyDirs = false
-    //    from "${buildDir}/bundle"
-    //    into "${projectDir}/web/js/lib"
-    //}
 }
 
 clean.doFirst {
