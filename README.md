@@ -2,11 +2,15 @@
 A Benchmark tool to test your REST service based on its openAPI3.0 interface description.
 
 ## Overview
+[Here](http://ec2-34-245-184-88.eu-west-1.compute.amazonaws.com:9090/) is an example instance of openISBT for evaluation. Please, use it to test and evaluate the compatibility with your REST services only; do not benchmark public APIs or similar, the example instance is limited to 100 pattern requests per day.
+
 System setup, at least two instances (one for the SUT and another for openISBT). 
 If your benchmark client (the openISBT instance) becomes a bottleneck, 
 you're benchmarking the client and should start at least one more instance with some more workers.
 
 <img src="doc/overview.png" alt="Overview" width="600"/>
+
+----
 
 ## Setup
 
@@ -44,6 +48,7 @@ Per default, the frontend tries to connect to the backend at localhost:8080 and 
    * start at port 8000: `java -jar build/libs/openISBTWorker-1.0-SNAPSHOT.jar 8000` 
    * start in background and write output into file: `java -jar build/libs/openISBTWorker-1.0-SNAPSHOT.jar 8000 > worker1.log &`
 
+----
 
 ## Benchmark 
 (with interactive browser GUI)
