@@ -45,6 +45,7 @@ kotlinFrontend {
         publicPath = "/"  // web prefix
         host = "localhost" // dev server host
         port = 9090  // dev server port
+        webpackConfigFile = project.projectDir.path + '/webpack.config.js'
     }
 }
 
