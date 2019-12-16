@@ -58,7 +58,7 @@ class pasteOAS {
                             redirectToUrl("generate.html")
                         }
                     }
-                    req.open("POST", "http://"+ Backend.url + ":8080/api/workload", true)
+                    req.open("POST", "http://"+ Backend.url + ":" + Backend.port + "/api/workload", true)
                     req.send(content)
                 }
                 println(JSON.stringify(content))
@@ -117,7 +117,7 @@ class pasteOAS {
                 redirectToUrl("patternConfig.html")
             }
         }
-        req.open("POST", "http://"+ Backend.url + ":8080/api/oasFiles", true)
+        req.open("POST", "http://"+ Backend.url + ":" + Backend.port + "/api/oasFiles", true)
         req.send(text)
     }
 
@@ -132,7 +132,7 @@ class pasteOAS {
                     taOASFile.value = text
                 }
             }
-            req.open("GET", "http://"+ Backend.url + ":8080/api/oasFiles/" + id, true)
+            req.open("GET", "http://"+ Backend.url + ":" + Backend.port + "/api/oasFiles/" + id, true)
             req.send()
         }
     }

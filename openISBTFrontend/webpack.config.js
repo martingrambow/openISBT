@@ -4,12 +4,12 @@
 
 var config = {
     "mode": "development",
-    "context": "/home/ec2-user/openISBT/openISBTFrontend/web/js",
+    "context": __dirname + "/web/js",
     "entry": {
         "main": "./openISBTFrontend"
     },
     "output": {
-        "path": "/home/ec2-user/openISBT/openISBTFrontend/build/bundle",
+        "path": __dirname + "/build/bundle",
         "filename": "[name].bundle.js",
         "chunkFilename": "[id].bundle.js",
         "publicPath": "/"
@@ -23,7 +23,7 @@ var config = {
         "modules": [
             "../web/js",
             "resources/main",
-            "/home/ec2-user/openISBT/openISBTFrontend/build/node_modules",
+            __dirname + "/build/node_modules",
             "node_modules"
         ]
     },

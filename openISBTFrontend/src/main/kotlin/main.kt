@@ -1,9 +1,16 @@
 
+import org.w3c.dom.HTMLTextAreaElement
+import org.w3c.dom.events.Event
+import org.w3c.dom.get
+import org.w3c.xhr.XMLHttpRequest
 import kotlin.browser.document
 import kotlin.browser.window
+import kotlin.js.Json
+
 
 fun main(args: Array<String>) {
-    println(args)
+
+    loadConfiguration()
 
     window.onload = {
         val content = document.getElementById("content")
@@ -60,4 +67,18 @@ fun getCookie(name:String):String {
         }
     }
     return ""
+}
+
+fun loadConfiguration() {
+    var url = "config/config.json"
+    val req = XMLHttpRequest()
+    req.onloadend = fun(event: Event) {
+        var config = JSON.parse<Json>(req.responseText);
+        val host = config.get("backendHost").unsafeCast<String>()
+        val port = config.get("backendPort").unsafeCast<Int>()
+        Backend.url = host;
+        Backend.port = port;
+    }
+    req.open("GET", url, true)
+    req.send()
 }

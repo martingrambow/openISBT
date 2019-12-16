@@ -60,8 +60,6 @@ compileKotlin2Js.kotlinOptions.suppressWarnings = false
 compileKotlin2Js.kotlinOptions.verbose = true
 compileKotlin2Js.kotlinOptions.sourceMapEmbedSources = "always"
 
-
-
 build.doLast {
     // Copy kotlin.js and kotlin-meta.js from jar into web directory
     configurations.compile.each { File file ->

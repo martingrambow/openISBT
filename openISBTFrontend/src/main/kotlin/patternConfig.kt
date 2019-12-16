@@ -40,7 +40,7 @@ class patternConfig {
                 redirectToUrl("check.html")
             }
         }
-        req.open("POST", "http://"+ Backend.url + ":8080/api/patternConfigs", true)
+        req.open("POST", "http://"+ Backend.url + ":" + Backend.port + "/api/patternConfigs", true)
         req.send(text)
     }
 
@@ -76,7 +76,7 @@ class patternConfig {
                     taPatternConfig.value = text
                 }
             }
-            req.open("GET", "http://"+ Backend.url + ":8080/api/patternConfigs/" + id, true)
+            req.open("GET", "http://"+ Backend.url + ":" + Backend.port + "/api/patternConfigs/" + id, true)
             req.send()
         }
     }
