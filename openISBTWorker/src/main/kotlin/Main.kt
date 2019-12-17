@@ -24,10 +24,11 @@ var threads = 1
 var executor = Executors.newFixedThreadPool(threads)
 val statisticshandler = Statisticshandler()
 
-
 fun main(args: Array<String>) {
-    var port = args.get(0).toInt()
-
+    var port = 8000
+    if (args.size > 0) {
+        port = args.get(0).toInt()
+    }
     embeddedServer(Netty, port, module = Application::module).start(wait = true)
 }
 

@@ -15,12 +15,9 @@ import io.ktor.application.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.features.*
-import io.ktor.http.CacheControl
 import io.ktor.request.receiveText
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.launch
 import mapping.Mapper
 import mapping.ResourceMapping
 import measurement.PatternMeasurement
@@ -41,7 +38,9 @@ val workerSets: MutableMap<Int,MutableMap<Int,Worker>> = HashMap()
 val results: MutableMap<Int,ArrayList<PatternMeasurement>> = HashMap()
 
 fun main(args: Array<String>) {
-
+    if (args.size > 0) {
+        Workerhandler.host = args[0]
+    }
     embeddedServer(Netty, 8080, module = Application::module).start(wait = true)
 }
 
