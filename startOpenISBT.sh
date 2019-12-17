@@ -3,8 +3,9 @@
 #1. Install git: sudo yum install git -y
 #2. Clone openISBT repo: git clone https://github.com/martingrambow/openISBT.git
 #3. cd to openISBT: cd openISBT
-#4.1 Create swap: ./initSwap.sh
-#4.2 run this script: ./startOpenISBT.sh
+#4. chmod +x *.sh
+#5. Create swap: ./initSwap.sh
+#6. run this script: ./startOpenISBT.sh
 
 #install git
 sudo yum install git -y
@@ -13,7 +14,7 @@ sudo yum install java -y
 # Install gradle
 wget -N https://services.gradle.org/distributions/gradle-4.10.3-bin.zip
 sudo mkdir /opt/gradle
-sudo unzip -du /opt/gradle gradle-4.10.3-bin.zip
+sudo unzip -u -d /opt/gradle gradle-4.10.3-bin.zip
 export PATH=$PATH:/opt/gradle/gradle-4.10.3/bin
 
 #Stop Backend
