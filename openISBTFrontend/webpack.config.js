@@ -1,7 +1,5 @@
 'use strict';
 
-//var webpack = require('webpack');
-
 var config = {
     "mode": "development",
     "context": __dirname + "/web/js",
@@ -31,7 +29,13 @@ var config = {
 
     ],
 	"devServer": {
-		"disableHostCheck": true
+		"disableHostCheck": true,
+		"proxy": {
+                '/api': {
+                    "target": 'http://localhost:8080',
+                    "secure": false
+                }
+            }
 	}
 };
 

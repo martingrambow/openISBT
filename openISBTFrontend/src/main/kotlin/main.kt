@@ -9,9 +9,6 @@ import kotlin.js.Json
 
 
 fun main(args: Array<String>) {
-
-    loadConfiguration()
-
     window.onload = {
         val content = document.getElementById("content")
         if (content != null) {
@@ -67,18 +64,4 @@ fun getCookie(name:String):String {
         }
     }
     return ""
-}
-
-fun loadConfiguration() {
-    var url = "config/config.json"
-    val req = XMLHttpRequest()
-    req.onloadend = fun(event: Event) {
-        var config = JSON.parse<Json>(req.responseText);
-        val host = config.get("backendHost").unsafeCast<String>()
-        val port = config.get("backendPort").unsafeCast<Int>()
-        Backend.url = host;
-        Backend.port = port;
-    }
-    req.open("GET", url, true)
-    req.send()
 }

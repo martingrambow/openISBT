@@ -46,7 +46,7 @@ class results {
             }
 
         }
-        req.open("GET", "http://" + Backend.url + ":" + Backend.port + "/api/results/" + measurementsID, true)
+        req.open("GET", "/api/results/" + measurementsID, true)
         req.send()
 
         println("run initialized")

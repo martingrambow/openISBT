@@ -36,7 +36,7 @@ class check {
                 reloadPatternTable()
             }
         }
-        req.open("GET", "http://"+ Backend.url + ":" + Backend.port + "/api/mapping?oasFile=" + oas + "&patternConfig=" + patternConf, true)
+        req.open("GET", "/api/mapping?oasFile=" + oas + "&patternConfig=" + patternConf, true)
         req.send()
 
         //Register eventlisteners which close the modal
@@ -94,7 +94,7 @@ class check {
                     }
                 }
             }
-            req2.open("GET", "http://"+ Backend.url + ":" + Backend.port + "/api/mapping/" + mappingID, true)
+            req2.open("GET", "/api/mapping/" + mappingID, true)
             req2.send()
         }
 
@@ -384,7 +384,7 @@ class check {
                     reloadPatternTable()
                 }
             }
-            req.open("PUT", "http://"+ Backend.url + ":" + Backend.port + "/api/mapping/" + mappingID + "?path=" + path + "&enabled=" + newState + "&patternConfig=" + getCookie("patternConfig"), true)
+            req.open("PUT", "/api/mapping/" + mappingID + "?path=" + path + "&enabled=" + newState + "&patternConfig=" + getCookie("patternConfig"), true)
             req.send()
         }
     }

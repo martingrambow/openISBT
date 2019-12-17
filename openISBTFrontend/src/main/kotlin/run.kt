@@ -36,7 +36,7 @@ class run {
                 redirectToUrl("generate.html")
             }
         }
-        req.open("GET", "http://"+ Backend.url + ":" + Backend.port + "/api/workload/" + workloadID, true)
+        req.open("GET", "/api/workload/" + workloadID, true)
         req.send()
 
         //Get URL(s) of SUT from oas file
@@ -54,7 +54,7 @@ class run {
                 }
             }
         }
-        req2.open("GET", "http://"+ Backend.url + ":" + Backend.port + "/api/oasFiles/" + oas + "/endpoints", true)
+        req2.open("GET", "/api/oasFiles/" + oas + "/endpoints", true)
         req2.send()
 
         val btnNext = document.getElementById("button_next")
@@ -142,7 +142,7 @@ class run {
                 appendToStatus("Error: " + text + "\n")
             }
         }
-        req.open("POST", "http://"+ Backend.url + ":" + Backend.port + "/api/run/worker", true)
+        req.open("POST", "/api/run/worker", true)
         req.send(JSON.stringify(worker))
     }
 
@@ -158,7 +158,7 @@ class run {
                 appendToStatus("Error: " + text + "\n")
             }
         }
-        req.open("GET", "http://"+ Backend.url + ":" + Backend.port + "/api/run/ensureWorkerWaiting/" + workersetID, true)
+        req.open("GET", "/api/run/ensureWorkerWaiting/" + workersetID, true)
         req.send()
     }
 
@@ -175,7 +175,7 @@ class run {
                 appendToStatus("Error: " + text + "\n")
             }
         }
-        req.open("GET", "http://"+ Backend.url + ":" + Backend.port + "/api/run/initWorker/" + workersetID + "?endpoint=" + tbxEndpoint.value, true)
+        req.open("GET", "/api/run/initWorker/" + workersetID + "?endpoint=" + tbxEndpoint.value, true)
         req.send()
     }
 
@@ -191,7 +191,7 @@ class run {
                 appendToStatus("Error: " + text + "\n")
             }
         }
-        req.open("GET", "http://"+ Backend.url + ":" + Backend.port + "/api/run/distribute/" + workersetID + "?workload=" + workloadID, true)
+        req.open("GET", "/api/run/distribute/" + workersetID + "?workload=" + workloadID, true)
         req.send()
     }
 
@@ -209,7 +209,7 @@ class run {
                 appendToStatus("Error: " + text + "\n")
             }
         }
-        req.open("GET", "http://"+ Backend.url + ":" + Backend.port + "/api/run/start/" + workersetID, true)
+        req.open("GET", "/api/run/start/" + workersetID, true)
         req.send()
     }
 
@@ -231,7 +231,7 @@ class run {
                 }
             }
         }
-        req.open("GET", "http://"+ Backend.url + ":" + Backend.port + "/api/run/notification/" + workersetID, true)
+        req.open("GET", "/api/run/notification/" + workersetID, true)
         req.send()
     }
 
@@ -252,7 +252,7 @@ class run {
                 appendToStatus("Error: " + text + "\n")
             }
         }
-        req.open("GET", "http://"+ Backend.url + ":" + Backend.port + "/api/run/collect/" + workersetID, true)
+        req.open("GET", "/api/run/collect/" + workersetID, true)
         req.send()
     }
 
@@ -338,7 +338,7 @@ class run {
         refreshWorkerObjects()
         for (w in worker.asList()) {
             //Request status from backend
-            var url = "http://"+ Backend.url + ":" + Backend.port + "/api/run/workerstatus?url=" + w.url
+            var url = "/api/run/workerstatus?url=" + w.url
             val req = XMLHttpRequest()
             req.onloadend = fun(event: Event) {
                 var answer = req.responseText
