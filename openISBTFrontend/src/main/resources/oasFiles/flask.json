@@ -26,7 +26,7 @@
   ],
   "servers": [
     {
-      "url": "http://ec2-34-248-221-160.eu-west-1.compute.amazonaws.com:5000/api/v1"
+      "url": "http://localhost:9020/api/v1"
     }
   ],
   "paths": {

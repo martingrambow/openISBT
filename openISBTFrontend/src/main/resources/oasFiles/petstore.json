@@ -15,7 +15,7 @@
   },
   "servers": [
     {
-      "url": "http://ec2-34-245-184-88.eu-west-1.compute.amazonaws.com:9090/v3"
+      "url": "http://localhost:9010/v3"
     }
   ],
   "tags": [
