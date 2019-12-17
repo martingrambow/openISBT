@@ -1,6 +1,6 @@
 #Setup EC2 instance
 #0. Connect to EC2 instance
-#1. Install git: yum install git -y
+#1. Install git: sudo yum install git -y
 #2. Clone openISBT repo: git clone https://github.com/martingrambow/openISBT.git
 #3. cd to openISBT: cd openISBT
 #4.1 Create swap: ./initSwap.sh
