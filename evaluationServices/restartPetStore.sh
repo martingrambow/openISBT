@@ -12,4 +12,4 @@ sudo service docker stop
 sudo service docker start
 
 #Start Petstore
-sudo docker run -d -e OPENAPI_BASE_PATH=/v3 -e DISABLE_OAUTH=1 -p 80:9010 openapitools/openapi-petstore
+sudo docker run -d -e OPENAPI_BASE_PATH=/v3 -e DISABLE_OAUTH=1 -p 9010:8080 openapitools/openapi-petstore

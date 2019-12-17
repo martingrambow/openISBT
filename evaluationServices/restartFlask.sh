@@ -12,8 +12,8 @@ sudo service docker stop
 sudo service docker start
 
 #Start Flask
-sudo docker run -it --rm --publish 5000:5000 frolvlad/flask-restplus-server-example
+sudo docker run -it --rm --publish 9020:5000 frolvlad/flask-restplus-server-example
 
-# Get OAuth tocken: Call http://host:5000/auth/oauth2/token?grant_type=password&client_id=documentation&username=root&password=q
+# Get OAuth tocken: Call http://host:9020/auth/oauth2/token?grant_type=password&client_id=documentation&username=root&password=q
 # Copy access_token (looks like LzaqK9qKEypzUsu85IY5umkpmJZotB)
 # Replace the token in api spec (5 times)
