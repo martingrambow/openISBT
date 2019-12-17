@@ -29,6 +29,11 @@ ps -aux | grep openISBTWorker
 echo $workerID
 kill -9 $workerID
 
+#reset
+git reset --hard
+chmod +x *.sh
+chmod +x evaluationServices/*.sh
+
 #Build and Start Backend
 cd openISBTBackend
 gradle clean build jar
