@@ -37,7 +37,7 @@ chmod +x evaluationServices/*.sh
 #Build and Start Backend
 cd openISBTBackend
 gradle clean build jar
-screen -mdS "openISBTBackend" java -jar build/libs/openISBTBackend-1.0-SNAPSHOT.jar &> backend.log
+screen -mdS "openISBTBackend" java -jar build/libs/openISBTBackend-1.0-SNAPSHOT.jar
 cd ..
 
 #Build and (re-)run Frontend
@@ -48,4 +48,4 @@ cd ..
 #Build and run one Worker
 cd openISBTWorker
 gradle clean build jar
-screen -mdS "openISBTWorker" java -jar build/libs/openISBTWorker-1.0-SNAPSHOT.jar 8000 &> worker1.log &
+screen -mdS "openISBTWorker" java -jar build/libs/openISBTWorker-1.0-SNAPSHOT.jar 8000
