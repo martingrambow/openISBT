@@ -4,7 +4,8 @@
 #2. Clone openISBT repo: git clone https://github.com/martingrambow/openISBT.git
 #3. cd to openISBT: cd openISBT
 #4. chmod +x *.sh
-#5. Create swap: ./initSwap.sh
+#5. Create swap: ./initSwap.sh swap1
+#5.1 Create more swap: ./initSwap.sh swap2
 #6. run this script: ./startOpenISBT.sh
 
 #install git
