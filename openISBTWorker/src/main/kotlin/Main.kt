@@ -75,15 +75,8 @@ fun Application.module() {
             call.respondText("OK", ContentType.Application.Json)
         }
 
-        put("/api/setListener") {
-            statisticshandler.listener = call.receiveText()
-            log.info("New listener is " + statisticshandler.listener)
-            call.response.header("Access-Control-Allow-Origin", "*")
-            call.respondText("OK", ContentType.Text.Plain)
-        }
         get("/api/clear") {
             workload = null
-            statisticshandler.listener = ""
             statisticshandler.reset()
             endpoint = ""
             status = "waiting"
@@ -111,6 +104,19 @@ fun Application.module() {
             log.info("New thread number is " + threads)
             call.response.header("Access-Control-Allow-Origin", "*")
             call.respondText("OK", ContentType.Text.Plain)
+        }
+
+        get("/api/getNotifications") {
+            log.info("Notifications requested")
+
+            val list = statisticshandler.getNotitications()
+            if (list != null) {
+                call.response.header("Access-Control-Allow-Origin", "*")
+                call.respondText(GsonBuilder().create().toJson(list), ContentType.Text.Plain)
+            } else {
+                call.response.header("Access-Control-Allow-Origin", "*")
+                call.respondText("No measurements", ContentType.Text.Plain)
+            }
         }
 
         get("/api/getMeasurements") {

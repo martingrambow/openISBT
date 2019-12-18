@@ -1,6 +1,4 @@
 import dataobjects.ResourceMapping
-//import kotlinx.coroutines.GlobalScope
-//import kotlinx.coroutines.launch
 import org.w3c.dom.*
 import org.w3c.dom.events.Event
 import org.w3c.xhr.XMLHttpRequest

@@ -1,7 +1,6 @@
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializer
-import com.google.gson.JsonObject
 import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
 import de.tuberlin.mcc.openapispecification.PathsObject
 import de.tuberlin.mcc.patternconfiguration.PatternConfiguration
@@ -38,9 +37,6 @@ val workerSets: MutableMap<Int,MutableMap<Int,Worker>> = HashMap()
 val results: MutableMap<Int,ArrayList<PatternMeasurement>> = HashMap()
 
 fun main(args: Array<String>) {
-    if (args.size > 0) {
-        Workerhandler.host = args[0]
-    }
     embeddedServer(Netty, 8080, module = Application::module).start(wait = true)
 }
 
@@ -294,14 +290,10 @@ fun Application.module() {
                 endpoint = call.parameters.get("endpoint")
                 for (w in worker.values) {
                     if (noErrors && workerhandler.clearWorker(w)) {
-                        if(noErrors && workerhandler.setListener(w, id)) {
-                            if (noErrors && workerhandler.setID(w)) {
-                                if (noErrors && workerhandler.setEndpoint(w, endpoint!!)) {
-                                    if (noErrors && workerhandler.setThreads(w, w.threads)) {
-                                        //Everything ok
-                                    } else {
-                                        noErrors = false
-                                    }
+                        if (noErrors && workerhandler.setID(w)) {
+                            if (noErrors && workerhandler.setEndpoint(w, endpoint!!)) {
+                                if (noErrors && workerhandler.setThreads(w, w.threads)) {
+                                    //Everything ok
                                 } else {
                                     noErrors = false
                                 }
@@ -360,36 +352,18 @@ fun Application.module() {
             if (workerhandler.startBenchmark(workerSets.getOrDefault(workersetID, HashMap()))) {
                 call.response.header("Access-Control-Allow-Origin", "*")
                 call.respondText("OK", ContentType.Text.Plain)
+                //Periodically request notifications from workers
+                workerhandler.startNotificationListener(workerSets.getOrDefault(workersetID, HashMap()),
+                        {id: Int, x:String ->
+                            val list = notificationLists.get(workersetID)
+                            if (list != null) {
+                                list.add(ServerNotification(workersetID, id, x))
+                            }
+                        })
             } else {
                 call.response.header("Access-Control-Allow-Origin", "*")
                 call.respondText("ERROR (see backend logs for details)", ContentType.Text.Plain)
             }
-        }
-
-        post("api/run/notification/{workersetID?}/{workerID?}") {
-
-            val workersetID = Integer.parseInt(call.parameters.get("workersetID"))
-            val workerID = Integer.parseInt(call.parameters.get("workerID"))
-            val message = call.receiveText()
-            println("Got notification from set " + workersetID + ", worker " + workerID + ": " + message)
-
-            val list = notificationLists.get(workersetID)
-            if (list != null) {
-                list.add(ServerNotification(workersetID, workerID, message))
-            }
-
-            if (message.contains("100%")) {
-                log.debug("Check if all workers are finished...")
-                var allDone = workerhandler.ensureAllWorkerStatus(workerSets.getOrDefault(workersetID, HashMap()), "waiting")
-                log.debug("All workers finished: " + allDone)
-                if (allDone && list != null) {
-                    log.debug("Send server notification..")
-                    list.add(ServerNotification(workersetID, -1, "All workers finished"))
-                }
-            }
-
-            call.response.header("Access-Control-Allow-Origin", "*")
-            call.respondText("OK", ContentType.Text.Plain)
         }
 
         get("/api/run/notification/{workersetID?}") {
@@ -445,7 +419,6 @@ fun Application.module() {
 }
 
 data class Entry(val message: String)
-
 data class ServerNotification(val workersetID: Int, val workerID:Int, val message: String)
 
 fun readOASfile(fileName: String): String

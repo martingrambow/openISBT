@@ -2,18 +2,22 @@ package run
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import de.tuberlin.mcc.patternconfiguration.PatternConfiguration
+import io.ktor.application.log
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.put
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import measurement.PatternMeasurement
+import org.slf4j.LoggerFactory
 import workload.PatternRequest
 import java.net.ConnectException
+import java.util.concurrent.TimeUnit
 
 class Workerhandler {
-    companion object {
-        var host:String = "localhost:8080"
-    }
+
+    val log = LoggerFactory.getLogger("Workerhandler")
 
     suspend fun getWorkerStatus(worker: Worker) : String {
         var url:String = buildURL(worker, "/api/getStatus")
@@ -38,29 +42,10 @@ class Workerhandler {
             if (response == "OK") {
                 return true
             } else {
-                println("Error while clearing worker " + worker.id + ", " + worker.url + ": " + response)
+                log.error("Error while clearing worker " + worker.id + ", " + worker.url + ": " + response)
             }
         } catch (e:ConnectException) {
-            println("Error while clearing worker " + worker.id + ", " + worker.url + ": " + e.toString())
-        }
-        return false
-    }
-
-    suspend fun setListener(worker: Worker, workersetID: Int) : Boolean {
-        try {
-            var client = HttpClient()
-            var url = buildURL(worker, "/api/setListener")
-            val response = client.put<String>(url, {
-                body = host + "/api/run/notification/" + workersetID + "/" + worker.id
-            })
-            client.close()
-            if (response == "OK") {
-                return true
-            } else {
-                println("Error while setListener for worker " + worker.id + ", " + worker.url + ": " + response)
-            }
-        } catch (e:ConnectException) {
-            println("Error while setListener for worker " + worker.id + ", " + worker.url + ": " + e.toString())
+            log.error("Error while clearing worker " + worker.id + ", " + worker.url + ": " + e.toString())
         }
         return false
     }
@@ -76,10 +61,10 @@ class Workerhandler {
             if (response == "OK") {
                 return true
             } else {
-                println("Error while setEndpoint for worker " + worker.id + ", " + worker.url + ": " + response)
+                log.error("Error while setEndpoint for worker " + worker.id + ", " + worker.url + ": " + response)
             }
         } catch (e:ConnectException) {
-            println("Error while setEndpoint for worker " + worker.id + ", " + worker.url + ": " + e.toString())
+            log.error("Error while setEndpoint for worker " + worker.id + ", " + worker.url + ": " + e.toString())
         }
         return false
     }
@@ -95,10 +80,10 @@ class Workerhandler {
             if (response == "OK") {
                 return true
             } else {
-                println("Error while setID for worker " + worker.id + ", " + worker.url + ": " + response)
+                log.error("Error while setID for worker " + worker.id + ", " + worker.url + ": " + response)
             }
         } catch (e:ConnectException) {
-            println("Error while setID for worker " + worker.id + ", " + worker.url + ": " + e.toString())
+            log.error("Error while setID for worker " + worker.id + ", " + worker.url + ": " + e.toString())
         }
         return false
     }
@@ -114,10 +99,10 @@ class Workerhandler {
             if (response == "OK") {
                 return true
             } else {
-                println("Error while setThreads for worker " + worker.id + ", " + worker.url + ": " + response)
+                log.error("Error while setThreads for worker " + worker.id + ", " + worker.url + ": " + response)
             }
         } catch (e:ConnectException) {
-            println("Error while setThreads for worker " + worker.id + ", " + worker.url + ": " + e.toString())
+            log.error("Error while setThreads for worker " + worker.id + ", " + worker.url + ": " + e.toString())
         }
         return false
     }
@@ -126,7 +111,7 @@ class Workerhandler {
 
     suspend fun ensureAllWorkerStatus(workers : MutableMap<Int, Worker>, status: String) : Boolean {
         if (workers.values.size == 0) {
-            println("No workers given")
+            log.error("No workers given")
             return false
         }
         var allStatus = true;
@@ -134,19 +119,19 @@ class Workerhandler {
         for (w in workers.values) {
             val response = getWorkerStatus(w)
             if (response != status) {
-                println("Worker " + w.id + " is not " + status + " but " + response)
+                log.warn("Worker " + w.id + " is not " + status + " but " + response)
                 allStatus = false
             }
         }
         if (!allStatus) {
-            println("not all workers are " + status)
+            log.warn("not all workers are " + status)
         }
         return allStatus
     }
 
     suspend fun distributeWorkload(workers: MutableMap<Int, Worker>, workload:Array<PatternRequest>) : Boolean{
         if (workers.values.size == 0) {
-            println("No workers given")
+            log.error("No workers given")
             return false
         }
         var packageNumber = workers.values.size
@@ -178,13 +163,13 @@ class Workerhandler {
                 })
                 client.close()
                 if (response == "OK") {
-                    println("Send workload (" + pack.size + "items) to worker " + w.id + ", " + w.url)
+                    log.info("Send workload (" + pack.size + "items) to worker " + w.id + ", " + w.url)
                 } else {
-                    println("Error while setWorkload for worker " + w.id + ", " + w.url + ": " + response)
+                    log.error("Error while setWorkload for worker " + w.id + ", " + w.url + ": " + response)
                     return false
                 }
             } catch (e:ConnectException) {
-                println("Error while setWorkload for worker " + w.id + ", " + w.url + ": " + e.toString())
+                log.error("Error while setWorkload for worker " + w.id + ", " + w.url + ": " + e.toString())
                 return false
             }
         }
@@ -194,7 +179,7 @@ class Workerhandler {
 
     suspend fun startBenchmark(workers: MutableMap<Int, Worker>) : Boolean{
         if (workers.values.size == 0) {
-            println("No workers given")
+            log.error("No workers given")
             return false
         }
 
@@ -206,25 +191,59 @@ class Workerhandler {
                 val response = client.get<String>(url)
                 client.close()
                 if (response == "OK") {
-                    println("Benchmarked started at worker " + w.id + ", " + w.url)
+                    log.info("Benchmarked started at worker " + w.id + ", " + w.url)
                 } else {
-                    println("Error while starting benchmark run for worker " + w.id + ", " + w.url + ": " + response)
+                    log.error("Error while starting benchmark run for worker " + w.id + ", " + w.url + ": " + response)
                     return false
                 }
             } catch (e:ConnectException) {
-                println("Error while starting benchmark run for worker " + w.id + ", " + w.url + ": " + e.toString())
+                log.error("Error while starting benchmark run for worker " + w.id + ", " + w.url + ": " + e.toString())
                 return false
             }
         }
-
         return true
+    }
+
+    suspend fun startNotificationListener(workers: MutableMap<Int, Worker>, add: (Int, String) -> Unit) {
+        GlobalScope.launch {
+            //Request every worker for notifications every 2 seconds
+            var end = false
+            do {
+                delay(2000)
+                for (w in workers.values) {
+                    try {
+                        var client = HttpClient()
+                        var url = buildURL(w, "/api/getNotifications")
+                        val response = client.get<String>(url)
+                        client.close()
+
+                        for (n in loadNotifications(response)) {
+                            add(w.id, n)
+
+                            if (n.contains("100%")) {
+                                log.debug("Check if all workers are finished...")
+                                var allDone = ensureAllWorkerStatus(workers, "waiting")
+                                log.debug("All workers finished: " + allDone)
+                                if (allDone) {
+                                    log.debug("Send server notification..")
+                                    add(-1, "All workers finished")
+                                    end = true;
+                                }
+                            }
+                        }
+                    } catch (e:ConnectException) {
+                        log.error("Error while getting notofications from worker " + w.id + ", " + w.url + ": " + e.toString())
+                    }
+                }
+            } while (!end)
+        }
     }
 
     suspend fun collectResults(workers: MutableMap<Int, Worker>) : ArrayList<PatternMeasurement>{
         var results: ArrayList<PatternMeasurement> = ArrayList()
 
         if (workers.values.size == 0) {
-            println("No workers given")
+            log.error("No workers given")
             return results
         }
 
@@ -242,7 +261,7 @@ class Workerhandler {
                 client.close()
 
             } catch (e:ConnectException) {
-                println("Error while starting benchmark run for worker " + w.id + ", " + w.url + ": " + e.toString())
+                log.error("Error while starting benchmark run for worker " + w.id + ", " + w.url + ": " + e.toString())
             }
         }
 
@@ -261,6 +280,13 @@ class Workerhandler {
         val gsonBuilder:GsonBuilder = GsonBuilder()
         val customGson: Gson = gsonBuilder.create()
         var measurement = customGson.fromJson(measurements, Array<PatternMeasurement>::class.java)
+        return measurement
+    }
+
+    private fun loadNotifications(notifications: String): Array<String> {
+        val gsonBuilder:GsonBuilder = GsonBuilder()
+        val customGson: Gson = gsonBuilder.create()
+        var measurement = customGson.fromJson(notifications, Array<String>::class.java)
         return measurement
     }
 
