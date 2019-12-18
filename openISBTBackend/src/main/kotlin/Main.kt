@@ -52,17 +52,13 @@ fun Application.module() {
     val notificationLists : MutableMap<Int, ArrayList<ServerNotification>> = HashMap()
 
     install(Routing) {
-        get("/api/ping/{count?}") {
+        get("/api/ping") {
             var count: Int = Integer.valueOf(call.parameters["count"]?: "1")
-            if (count < 1) {
-                count = 1
-            }
-            var obj = Array<Entry>(count, {i -> Entry("$i: Hello, World!")})
+            var obj = Entry("Hello, World!")
             val gson = Gson()
             var str = gson.toJson(obj)
             call.response.header("Access-Control-Allow-Origin", "*")
             call.respondText(str, ContentType.Application.Json)
-
         }
         post("/api/oasFiles") {
             val r = Random()

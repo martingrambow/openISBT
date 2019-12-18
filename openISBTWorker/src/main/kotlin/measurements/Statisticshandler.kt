@@ -53,12 +53,15 @@ class Statisticshandler () {
         try {
             var client = HttpClient()
             var url = listener
+            log.info("Sending " + message + " to " + url)
             val response = client.post<String>(url, {
                 body = message
             })
             client.close()
             if (response != "OK") {
                 log.error("Unable to notify listener, url = " + url)
+            } else {
+                log.info("Notification sent")
             }
         } catch (e: ConnectException) {
             log.error("Unable to notify listener " + listener)
