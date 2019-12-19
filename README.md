@@ -91,6 +91,10 @@ Alternatively, you can also upload an already created workload and skip the next
 (via terminal)
 -> Not yet implemented
 
+## Futher information
+* [Abstract operations and matching units](abstractOperations.md)
+* [Linking(units)](linkingUnits.md)
+
 # Usage and license
 * If you use this tool for research purposes with a resulting publication, we would appreciate if you cite our paper:
 ```TeX
