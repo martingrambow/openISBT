@@ -38,6 +38,7 @@ you're benchmarking the client and should start at least one more instance with 
 1. Click *Start*
 
 ### Paste OpenAPI 3.0 specification file
+<img src="doc/start.PNG" alt="openAPI file" width="600"/>
 
 1. Enter an URL, select one of the default files, or copy and paste your OpenAPI 3.0 file directly (e.g., pick petstore and click load).
 2. Click *Next*
@@ -45,22 +46,30 @@ you're benchmarking the client and should start at least one more instance with 
 Alternatively, you can also upload an already created workload and skip the next steps.
 
 ### Define Workload
+<img src="doc/pattern.PNG" alt="define patterns" width="600"/>
+
 1. Load a default configuration and adjust the workload to your needs (e.g., pick the experiment workload)
 2. Click *Next*
 
 ### Adjust Matching
+<img src="doc/check.PNG" alt="check matching" width="600"/>
+
 1. OpenISBT matches the openAPI file and workload
 2. Check the matching by clicking on the pattern name (e.g., UPD)
 3. Adjust the benchmarked paths (or go back to adjust the specification)
 4. Click *Next*
 
 ### Generate Workload
+<img src="doc/generate.PNG" alt="generate workload" width="600"/>
+
 1. Click (Re-)generate workload
 2. OpenISBT now generates the workload, this can take a while
 3. Check the workload by clicking on a pattern request item
 4. Click *Next*
 
 ### Define Workers and run benchmark
+<img src="doc/run.PNG" alt="run benchmark" width="600"/>
+
 1. Adjust the service endpoint (if neccessary)
 2. Adjust the number of running threads per worker (if neccessary)
 3. Configure at least worker (on the example instance, there is one worker running at *localhost:8000*)
@@ -71,6 +80,8 @@ Alternatively, you can also upload an already created workload and skip the next
 8. Click *Next*
 
 ### Get Results
+<img src="doc/results.PNG" alt="results" width="600"/>
+
 1. Look at the results for each pattern, path and operation
 2. Download the results as json file
 
