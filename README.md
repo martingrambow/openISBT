@@ -4,8 +4,6 @@ A Benchmark tool to test your REST service based on its openAPI3.0 interface des
 [Benchmarking Microservice Performance: A Pattern-based Approach](https://dbermbach.github.io/publications/2020-sac-dads-microservices.pdf) 
 
 ## Overview
-[Here](http://ec2-52-214-238-129.eu-west-1.compute.amazonaws.com:9090/) is an example instance of openISBT for evaluation. Please, use it to test and evaluate the compatibility with your REST services only; do not benchmark public APIs or similar.
-
 System setup, at least two instances (one for the SUT and another for openISBT). 
 If your benchmark client (the openISBT instance) becomes a bottleneck, 
 you're benchmarking the client and should start at least one more instance with some more workers.
