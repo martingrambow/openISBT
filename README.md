@@ -1,9 +1,9 @@
 # openISBT
 A Benchmark tool to test your REST service based on its openAPI3.0 interface description.
 
-## Overview
-[Here](http://ec2-52-214-238-129.eu-west-1.compute.amazonaws.com:9090/) is an example instance of openISBT for evaluation. Please, use it to test and evaluate the compatibility with your REST services only; do not benchmark public APIs or similar.
+[Benchmarking Microservice Performance: A Pattern-based Approach](https://dbermbach.github.io/publications/2020-sac-dads-microservices.pdf) 
 
+## Overview
 System setup, at least two instances (one for the SUT and another for openISBT). 
 If your benchmark client (the openISBT instance) becomes a bottleneck, 
 you're benchmarking the client and should start at least one more instance with some more workers.
@@ -88,3 +88,20 @@ Alternatively, you can also upload an already created workload and skip the next
 ## Batch Benchmark
 (via terminal)
 -> Not yet implemented
+
+## Futher information
+* [Abstract operations and matching units](abstractOperations.md)
+* [Linking(units)](linkingUnits.md)
+
+# Usage and license
+* If you use this tool for research purposes with a resulting publication, we would appreciate if you cite our paper:
+```TeX
+@inproceedings{paper_grambow_benchmarking_microservices,
+	title = {{Benchmarking Microservice Performance: A Pattern-based Approach}},
+	booktitle = {Proceedings of the 35th ACM Symposium on Applied Computing (SAC 2020)},
+	publisher = {ACM},
+	author = {Martin Grambow and Lukas Meusel and Erik Wittern and David Bermbach},
+	year = {2020}
+}
+```
+This tool is published under the MIT License.
