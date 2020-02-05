@@ -8,11 +8,15 @@ import de.tuberlin.mcc.openapispecification.PathItemObject
 import de.tuberlin.mcc.openapispecification.PathsObject
 import de.tuberlin.mcc.openapispecification.ResponseObject
 import openapispecification.ResponsesObject
+import org.slf4j.LoggerFactory
 import java.lang.reflect.Type
 
 class ResponsesObjectDeserializer() : JsonDeserializer<ResponsesObject> {
+
+    val log = LoggerFactory.getLogger("ResponsesObjectDeserializer")
+
     override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): ResponsesObject? {
-        //println("Try to deserialize response " + json);
+        log.trace("Try to deserialize response " + json);
         val responses:HashMap<String, ResponseObject> = HashMap()
 
 

@@ -4,8 +4,11 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import de.tuberlin.mcc.openapispecification.*
+import org.slf4j.LoggerFactory
 
 class MatchingUtil {
+
+    val log = LoggerFactory.getLogger("ReferenceResolver")
 
     fun parseParameter(parameters : Array<ParameterObject>, spec: OpenAPISPecifcation) : ArrayList<JsonObject> {
         var result : ArrayList<JsonObject> = ArrayList()
@@ -64,11 +67,11 @@ class MatchingUtil {
                 mediaTypeObject = contentObject.get("multipart/form-data")
             }
             if (mediaTypeObject != null) {
-                println("    MediaTypeObject: " + GsonBuilder().create().toJson(mediaTypeObject))
+                log.debug("    MediaTypeObject: " + GsonBuilder().create().toJson(mediaTypeObject))
                 var schemaObject: SchemaObject? = null
                 if (mediaTypeObject.schema != null) {
                     schemaObject = mediaTypeObject.schema
-                    println("    SchemaObjectX: " + GsonBuilder().create().toJson(schemaObject))
+                    log.debug("    SchemaObjectX: " + GsonBuilder().create().toJson(schemaObject))
 
                     if (schemaObject.`$ref` != null) {
                         //There is a reference which has to be resolved

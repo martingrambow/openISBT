@@ -74,7 +74,7 @@ class ResourceMapping {
         for (aOperation in aPattern.sequence) {
             var patternOperations:ArrayList<PatternOperation> = ArrayList()
 
-            //find resouce paths which belong to the given top level resource path
+            //find resource paths which belong to the given top level resource path
             for (path in spec.paths.paths.keys) {
                 if (path.startsWith(topLevelResourcePath)) {
                     var pathItemObject = spec.paths.paths.get(path);

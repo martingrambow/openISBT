@@ -1,14 +1,11 @@
+package webbackend
+
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.google.gson.JsonDeserializer
 import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
-import de.tuberlin.mcc.openapispecification.PathsObject
 import de.tuberlin.mcc.patternconfiguration.PatternConfiguration
 import io.ktor.application.call
 import io.ktor.http.ContentType
-import openapispecification.ResponsesObject
-import openapispecification.deserializer.PathsObjectDeserializer
-import openapispecification.deserializer.ResponsesObjectDeserializer
 import java.io.File
 import io.ktor.application.*
 import io.ktor.response.*
@@ -22,6 +19,10 @@ import mapping.ResourceMapping
 import measurement.PatternMeasurement
 import run.Worker
 import run.Workerhandler
+import util.loadOAS
+import util.loadPatternConfig
+import util.loadWorker
+import util.loadWorkload
 import workload.PatternRequest
 import java.util.*
 import kotlin.collections.ArrayList
@@ -420,48 +421,3 @@ fun Application.module() {
 
 data class Entry(val message: String)
 data class ServerNotification(val workersetID: Int, val workerID:Int, val message: String)
-
-fun readOASfile(fileName: String): String
-        = File("openISBTBackend/src/main/resources/oasFiles/" + fileName).readText(Charsets.UTF_8)
-
-fun loadOAS(oasFile:String):OpenAPISPecifcation? {
-
-    if (oasFile.length > 15) {
-
-        val gsonBuilder: GsonBuilder = GsonBuilder()
-        val pathsObjectDeserializer: JsonDeserializer<PathsObject> = PathsObjectDeserializer()
-        gsonBuilder.registerTypeAdapter(PathsObject::class.java, pathsObjectDeserializer)
-        val responsesObjectDeserializer: JsonDeserializer<ResponsesObject> = ResponsesObjectDeserializer()
-        gsonBuilder.registerTypeAdapter(ResponsesObject::class.java, responsesObjectDeserializer)
-
-        val customGson: Gson = gsonBuilder.create();
-
-        var openAPISpec = customGson.fromJson(oasFile, OpenAPISPecifcation::class.java)
-        return openAPISpec
-    }
-    return null
-}
-
-fun loadPatternConfig(patternConfigFile: String): PatternConfiguration? {
-    val gsonBuilder:GsonBuilder = GsonBuilder()
-    val customGson:Gson = gsonBuilder.create();
-
-    var patternConfig = customGson.fromJson(patternConfigFile, PatternConfiguration::class.java)
-    return patternConfig
-}
-
-fun loadWorkload(workloadAsText : String) : Array<PatternRequest>? {
-    val gsonBuilder:GsonBuilder = GsonBuilder()
-    val customGson:Gson = gsonBuilder.create();
-
-    var patternConfig = customGson.fromJson(workloadAsText, Array<PatternRequest>::class.java)
-    return patternConfig
-}
-
-fun loadWorker(workerAsText : String) : Array<Worker>? {
-    val gsonBuilder:GsonBuilder = GsonBuilder()
-    val customGson:Gson = gsonBuilder.create();
-
-    var worker = customGson.fromJson(workerAsText, Array<Worker>::class.java)
-    return worker
-}

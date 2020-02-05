@@ -4,11 +4,15 @@ import com.google.gson.*
 import de.tuberlin.mcc.openapispecification.PathItemObject
 import de.tuberlin.mcc.openapispecification.PathsObject
 import openapispecification.ResponsesObject
+import org.slf4j.LoggerFactory
 import java.lang.reflect.Type
 
 class PathsObjectDeserializer() : JsonDeserializer<PathsObject> {
+
+    val log = LoggerFactory.getLogger("PathsObjectDeserializer")
+
     override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): PathsObject? {
-        println("Try to deserialize " + json);
+        log.trace("Try to deserialize " + json);
         val paths:HashMap<String, PathItemObject> = HashMap()
 
         val gsonBuilder: GsonBuilder = GsonBuilder()

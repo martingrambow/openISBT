@@ -1,12 +1,14 @@
 package matching
 
 import com.google.gson.GsonBuilder
-import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
 import de.tuberlin.mcc.openapispecification.SchemaObject
+import org.slf4j.LoggerFactory
 
 class ReferenceResolver {
+
+    val log = LoggerFactory.getLogger("ReferenceResolver")
 
     fun resolveReference(reference:String, spec: OpenAPISPecifcation) : Any?{
         var parts = reference.split("/")
@@ -27,7 +29,7 @@ class ReferenceResolver {
             }
             if (prop.key.equals("\$ref") && prop.value.asString.contains("/components/schemas")) {
                 var resolvedSubSchema = ReferenceResolver().resolveReference(prop.value.asString, spec) as SchemaObject
-                println("Resolved: " + GsonBuilder().create().toJson(resolvedSubSchema))
+                log.debug("Resolved: " + GsonBuilder().create().toJson(resolvedSubSchema))
                 return GsonBuilder().create().toJsonTree(resolvedSubSchema).asJsonObject
             }
         }

@@ -52,7 +52,7 @@ class ReadMatchingUnit : MatchingUnit{
                 }
                 if (getObject.parameters != null) {
                     operation.parameters = MatchingUtil().parseParameter(getObject.parameters, spec)
-                    println("Found " + operation.parameters.size + " parameters")
+                    log.debug("Found " + operation.parameters.size + " parameters")
                     for (headerparam in MatchingUtil().parseHeaderParameter(getObject.parameters, spec)) {
                         operation.headers.add(Pair(headerparam.get("name").asString, headerparam.getAsJsonObject("schema")))
                     }

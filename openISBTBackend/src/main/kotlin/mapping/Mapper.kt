@@ -14,11 +14,11 @@ class Mapper {
 
         //Determine top level resources
         val resourcePaths = getTopLevelResourcePaths(openApi)
-        log.debug("Top level paths:")
+        log.info("Top level paths:")
         for (path in resourcePaths) {
-            log.debug("-> " + path)
+            log.info("-> " + path)
         }
-        log.debug("--------------------")
+        log.info("--------------------")
         log.debug("Binding starts...")
 
         //and map them to given patternMappingList
@@ -27,13 +27,13 @@ class Mapper {
             var mapping = ResourceMapping(openApi, config, path)
             resourceMappingList.add(mapping)
 
-            log.debug("Resouce Mapping for " + path + ":")
+            log.info("Resource Mapping for " + path + ":")
 
             for (mapping in mapping.patternMappingList) {
-                log.debug("  Pattern " + mapping.aPattern.name + ", supported=" + mapping.supported + ", requests=" + mapping.requests + ":")
+                log.info("  Pattern " + mapping.aPattern.name + ", supported=" + mapping.supported + ", requests=" + mapping.requests + ":")
                 for (operationlist in mapping.operationSequence) {
                     for (entry in operationlist) {
-                        log.debug("      Operation: " + entry.aOperation.operation + " path=" + entry.path)
+                        log.info("      Operation: " + entry.aOperation.operation + " path=" + entry.path)
                     }
                 }
             }
