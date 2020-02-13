@@ -6,6 +6,8 @@ import com.google.gson.JsonDeserializer
 import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
 import de.tuberlin.mcc.openapispecification.PathsObject
 import de.tuberlin.mcc.patternconfiguration.PatternConfiguration
+import mapping.ResourceMapping
+import measurement.PatternMeasurement
 import openapispecification.ResponsesObject
 import openapispecification.deserializer.PathsObjectDeserializer
 import openapispecification.deserializer.ResponsesObjectDeserializer
@@ -30,47 +32,40 @@ fun checkFile(file : File) : Boolean {
 }
 
 fun loadOAS(oasFile:String): OpenAPISPecifcation? {
-
     if (oasFile.length > 15) {
-
-        val gsonBuilder: GsonBuilder = GsonBuilder()
+        val gsonBuilder = GsonBuilder()
         val pathsObjectDeserializer: JsonDeserializer<PathsObject> = PathsObjectDeserializer()
         gsonBuilder.registerTypeAdapter(PathsObject::class.java, pathsObjectDeserializer)
         val responsesObjectDeserializer: JsonDeserializer<ResponsesObject> = ResponsesObjectDeserializer()
         gsonBuilder.registerTypeAdapter(ResponsesObject::class.java, responsesObjectDeserializer)
-
-        val customGson: Gson = gsonBuilder.create();
-
-        var openAPISpec = customGson.fromJson(oasFile, OpenAPISPecifcation::class.java)
-        return openAPISpec
+        val customGson: Gson = gsonBuilder.create()
+        return customGson.fromJson(oasFile, OpenAPISPecifcation::class.java)
     }
     return null
 }
 
-fun loadPatternConfig(patternConfigFile: String): PatternConfiguration? {
-    val gsonBuilder:GsonBuilder = GsonBuilder()
-    val customGson:Gson = gsonBuilder.create();
+fun loadMapping(mappingFile: String): Array<ResourceMapping>? {
+    val customGson:Gson = GsonBuilder().create()
+    return customGson.fromJson(mappingFile, Array<ResourceMapping>::class.java)
+}
 
-    var patternConfig = customGson.fromJson(patternConfigFile, PatternConfiguration::class.java)
-    return patternConfig
+fun loadPatternConfig(patternConfigFile: String): PatternConfiguration? {
+    val customGson = GsonBuilder().create()
+    return customGson.fromJson(patternConfigFile, PatternConfiguration::class.java)
 }
 
 fun loadWorkload(workloadAsText : String) : Array<PatternRequest>? {
-    val gsonBuilder:GsonBuilder = GsonBuilder()
-    val customGson:Gson = gsonBuilder.create();
-
-    var patternConfig = customGson.fromJson(workloadAsText, Array<PatternRequest>::class.java)
-    return patternConfig
+    val customGson = GsonBuilder().create()
+    return customGson.fromJson(workloadAsText, Array<PatternRequest>::class.java)
 }
 
 
 fun loadWorker(workerAsText : String) : Array<Worker>? {
-    val gsonBuilder:GsonBuilder = GsonBuilder()
-    val customGson:Gson = gsonBuilder.create();
-
-    var worker = customGson.fromJson(workerAsText, Array<Worker>::class.java)
-    return worker
+    val customGson = GsonBuilder().create()
+    return customGson.fromJson(workerAsText, Array<Worker>::class.java)
 }
 
-class Util {
+fun loadMeasurements(measurmentsAsText : String) : Array<PatternMeasurement>? {
+    val customGson = GsonBuilder().create()
+    return customGson.fromJson(measurmentsAsText, Array<PatternMeasurement>::class.java)
 }

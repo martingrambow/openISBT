@@ -1,0 +1,86 @@
+{
+  "totalPatternRequests": 100,
+  "patterns": [
+    {
+      "name": "CRE",
+      "sequence": [
+        {
+          "operation": "CREATE",
+          "output": "item",
+          "wait": 15
+        },
+        {
+          "operation": "READ",
+          "input": "item",
+          "output": "item",
+          "wait": 5
+        }
+      ],
+      "weight": 25
+    },
+    {
+      "name": "UPD",
+      "sequence": [
+        {
+          "operation": "SCAN",
+          "output": "resourceList",
+          "wait": 15
+        },
+        {
+          "operation": "READ",
+          "input": "resourceList",
+          "selector": "RANDOM",
+          "output": "item",
+          "wait": 5
+        },
+        {
+          "operation": "UPDATE",
+          "input": "item",
+          "wait": 5
+        }
+      ],
+      "weight": 25
+    },
+    {
+      "name": "LST",
+      "sequence": [
+        {
+          "operation": "SCAN",
+          "output": "resourceList",
+          "wait": 15
+        },
+        {
+          "operation": "READ",
+          "input": "resourceList",
+          "selector": "RANDOM",
+          "wait": 5
+        }
+      ],
+      "weight": 25
+    },
+    {
+      "name": "DEL",
+      "sequence": [
+        {
+          "operation": "SCAN",
+          "output": "resourceList",
+          "wait": 15
+        },
+        {
+          "operation": "READ",
+          "input": "resourceList",
+          "selector": "RANDOM",
+          "output": "item",
+          "wait": 5
+        },
+        {
+          "operation": "DELETE",
+          "input": "item",
+          "wait": 5
+        }
+      ],
+      "weight": 25
+    }],
+
+  "manualDecision": true
+}

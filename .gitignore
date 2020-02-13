@@ -7,3 +7,10 @@ build
 /.idea
 /openISBTWorker/out
 /openISBTFrontend/node_modules
+/fakerServer/node_modules
+/*.log
+/mapping.json
+/results.csv
+/results.json
+/workload.json
+/fakerServer/package-lock.json

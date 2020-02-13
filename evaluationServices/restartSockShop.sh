@@ -17,5 +17,8 @@ rm -rf user
 git clone https://github.com/microservices-demo/user.git
 
 cd user
-sudo /usr/local/bin/docker-compose up -d user-db
-sudo /usr/local/bin/docker-compose up -d user
+#expose to port 8080
+sudo chmod 777 docker-compose.yml
+sed -i 's/80"/8084"/g' docker-compose.yml
+sudo /usr/local/bin/docker-compose up -d --build --force-recreate -V user-db 
+sudo /usr/local/bin/docker-compose up -d --build --force-recreate -V user 

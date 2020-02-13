@@ -1,11 +1,8 @@
-import dataobjects.ResourceMapping
 import org.w3c.dom.*
 import org.w3c.dom.events.Event
 import org.w3c.xhr.XMLHttpRequest
 import workload.ApiRequest
 import workload.PatternRequest
-import workload.ProgressListener
-import workload.WorkloadGenerator
 import kotlin.browser.document
 import kotlin.browser.window
 import kotlin.dom.addClass
@@ -13,57 +10,57 @@ import kotlin.dom.removeClass
 
 external fun encodeURIComponent(str: String): String
 
-class generate : ProgressListener{
+class generate {
 
-    var mappingID = -1
-    var workloadID = -1
-    var workload: Array<PatternRequest>? = null
+    private var mappingID = -1
+    private var workloadID = -1
+    private var workload: Array<PatternRequest>? = null
+
+    private var notificationListenerID:Int = -1
+    private var generationFinished = false
 
     fun init() {
         println("Init generate called")
         val btnGenerate = document.getElementById("button_generate")
-        btnGenerate?.addEventListener("click", fun(event: Event) {
+        btnGenerate?.addEventListener("click", fun(_: Event) {
             btnGenerateClicked()
 
         })
 
         val btnDownload = document.getElementById("btnDownload")
-        btnDownload?.addEventListener("click", fun(event: Event) {
+        btnDownload?.addEventListener("click", fun(_: Event) {
             btnDownloadClicked()
 
         })
 
         val btnNext = document.getElementById("button_next")
-        btnNext?.addEventListener("click", fun(event: Event) {
+        btnNext?.addEventListener("click", fun(_: Event) {
             handleNextButtonClick()
 
         })
 
         val mappingStr = getCookie("mapping")
-        if (mappingStr.length > 0) {
+        if (mappingStr.isNotEmpty()) {
             mappingID = mappingStr.toInt()
             btnGenerate?.removeClass("hidden")
         }
         val workloadStr = getCookie("workload")
-        if (workloadStr.length > 0) {
+        if (workloadStr.isNotEmpty()) {
             workloadID = getCookie("workload").toInt()
         }
 
         if (workloadID != -1) {
-            println("Try to load workload " + workloadID)
+            println("Try to load workload $workloadID")
             getWorkload()
         }
 
         //Register eventlisteners which close the modal
-        var span = document.getElementById("workloadDetailsClose");
-        if (span != null) {
-            span.addEventListener("click", fun(event: Event) {
-                closeWorkloadDetails()
-            })
-        }
+        document.getElementById("workloadDetailsClose")?.addEventListener("click", fun(_: Event) {
+            closeWorkloadDetails()
+        })
 
         window.addEventListener("click", fun(event: Event) {
-            var modal = document.getElementById("workloadDetails");
+            val modal = document.getElementById("workloadDetails")
             if (modal != null) {
                 if (event.target == modal) {
                     closeWorkloadDetails()
@@ -80,110 +77,94 @@ class generate : ProgressListener{
 
     private fun getWorkload() {
         val req = XMLHttpRequest()
-        req.onloadend = fun(event: Event) {
-            var text = req.responseText
+        req.onloadend = fun(_: Event) {
+            val text = req.responseText
             if (text != "\"not found\"") {
                 workload = JSON.parse<Array<PatternRequest>>(text)
                 fillWorkloadTable()
             }
         }
-        req.open("GET", "/api/workload/" + workloadID.toString(), true)
+        req.open("GET", "/api/workload/$workloadID", true)
         req.send()
     }
 
     private fun btnGenerateClicked() {
-        var btn = document.getElementById("button_generate") as HTMLButtonElement
-        var bar = document.getElementById("progressbar") as HTMLDivElement
-        if (btn != null && bar != null && mappingID != -1) {
+        val bar = document.getElementById("progressbar") as HTMLDivElement
+        if (mappingID != -1) {
             //show progressbar
             //btn.addClass("hidden")
             bar.removeClass("hidden")
 
-            var divWorkload = document.getElementById("divWorkload") as HTMLDivElement
-            var tblWorkload = document.getElementById("tblWorkload") as HTMLTableElement
-            var btnDownload = document.getElementById("btnDownload") as HTMLButtonElement
-            var btnNext = document.getElementById("button_next") as HTMLButtonElement
+            val divWorkload = document.getElementById("divWorkload") as HTMLDivElement
+            val tblWorkload = document.getElementById("tblWorkload") as HTMLTableElement
+            val btnDownload = document.getElementById("btnDownload") as HTMLButtonElement
+            val btnNext = document.getElementById("button_next") as HTMLButtonElement
 
             btnDownload.addClass("hidden")
             btnNext.addClass("hidden")
             divWorkload.addClass("hidden")
             tblWorkload.addClass("hidden")
 
-            //get ressource mappings
-            val req = XMLHttpRequest()
-            req.onloadend = fun(event: Event) {
-                var text = req.responseText
-                if (text != "\"not found\"") {
-                    val mappings = JSON.parse<Array<ResourceMapping>>(text)
-                    if (mappings != null) {
-                        //Generate workload
-                        var generator = WorkloadGenerator()
-                        generator.listener = this
-                        generator.generateWorkload(mappings)
-                        workload = generator.getWorkload()
-                        uploadWorkload()
-                        //GlobalScope.launch {
-                        //    generator.generateWorkloadAsync(mappings, {
-                        //        workload = generator.workload
-                        //        onWorkloadGenerated()
-                        //    })
-                        //}
-                    }
+            //Start workload generation
+            generationFinished = false
+            val req1 = XMLHttpRequest()
+            req1.onloadend = fun(_: Event) {
+                val text = req1.responseText
+                val parts = text.split(" ")
+                if (parts.size == 6) {
+                    document.cookie = "workload=" + parts[5]
+                    workloadID = parts[5].toInt()
+                    notificationListenerID = window.setInterval({refreshGenerationStatus()}, 1000)
                 }
             }
-            req.open("GET", "/api/mapping/" + mappingID, true)
-            req.send()
+            req1.open("GET", "/api/workload/generate/$mappingID", true)
+            req1.send()
+
         }
+    }
+
+    private fun refreshGenerationStatus() {
+        val req = XMLHttpRequest()
+        req.onloadend = fun(_: Event) {
+            val text = req.responseText
+            setProgress(text.toInt())
+        }
+        req.open("GET", "/api/workload/status/$workloadID", true)
+        req.send()
     }
 
     private fun btnDownloadClicked() {
         if (workload != null) {
-            var workloadAsDownload = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(workload))
-            var downloadLink = document.getElementById("downloadLink") as HTMLElement
-            downloadLink.setAttribute("href", workloadAsDownload);
-            downloadLink.setAttribute("download", "workload" + workloadID + ".json");
-            downloadLink.click();
+            val workloadAsDownload = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(workload))
+            val downloadLink = document.getElementById("downloadLink") as HTMLElement
+            downloadLink.setAttribute("href", workloadAsDownload)
+            downloadLink.setAttribute("download", "workload$workloadID.json")
+            downloadLink.click()
         }
     }
 
-    override fun setProgress(percentage : Int) {
+    private fun setProgress(percentage : Int) {
         //println("Called with " + percentage + "%")
-        var elem = document.getElementById("progress") as HTMLDivElement
+        val elem = document.getElementById("progress") as HTMLDivElement
         if (percentage < 100) {
-            elem.style.width = percentage.toString() + "%"
-            elem.innerHTML = percentage.toString() + "%"
+            elem.style.width = "$percentage%"
+            elem.innerHTML = "$percentage%"
         } else {
             elem.style.width = "100%"
             elem.innerHTML = "Workload generated"
-        }
-    }
-
-    private fun uploadWorkload() {
-        if (workload != null) {
-            //Send workload to backend
-            val req = XMLHttpRequest()
-            req.onloadend = fun(event: Event) {
-                var text = req.responseText
-                val parts = text.split(" ")
-                if (parts.size == 6) {
-                    document.cookie = "workload=" + parts[5]
-
-                    //Show workload
-                    fillWorkloadTable()
-                }
-            }
-            req.open("POST", "/api/workload", true)
-            req.send(JSON.stringify(workload))
+            generationFinished = true
+            fillWorkloadTable()
+            getWorkload()
         }
     }
 
     private fun fillWorkloadTable() {
         if (workload != null) {
             val tmpWL = workload
-            var divWorkload = document.getElementById("divWorkload") as HTMLDivElement
-            var tblWorkload = document.getElementById("tblWorkload") as HTMLTableElement
-            var btnDownload = document.getElementById("btnDownload") as HTMLButtonElement
-            var btnNext = document.getElementById("button_next") as HTMLButtonElement
+            val divWorkload = document.getElementById("divWorkload") as HTMLDivElement
+            val tblWorkload = document.getElementById("tblWorkload") as HTMLTableElement
+            val btnDownload = document.getElementById("btnDownload") as HTMLButtonElement
+            val btnNext = document.getElementById("button_next") as HTMLButtonElement
 
             btnDownload.removeClass("hidden")
             btnNext.removeClass("hidden")
@@ -192,17 +173,15 @@ class generate : ProgressListener{
             tblWorkload.addClass("workloadTable")
 
             //Remove all lines except the headline
-            var lines = document.getElementsByClassName("workloadRow").asList();
-            while (lines.size > 0 && lines.get(0) != null){
-                lines.get(0).remove()
+            val lines = document.getElementsByClassName("workloadRow").asList()
+            while (lines.isNotEmpty()){
+                lines[0].remove()
             }
 
             if (tmpWL != null) {
                 for (wl in tmpWL) {
                     val row = buildWorkloadRow(wl)
-                    if (tblWorkload != null) {
-                        tblWorkload.appendChild(row)
-                    }
+                    tblWorkload.appendChild(row)
                 }
             }
         }
@@ -213,7 +192,7 @@ class generate : ProgressListener{
         row.addClass("workloadRow")
         row.addClass("pointable")
 
-        row.addEventListener("click", fun(event: Event) {
+        row.addEventListener("click", fun(_: Event) {
             clickRequestForDetails(request)
         })
 
@@ -246,7 +225,7 @@ class generate : ProgressListener{
 
     private fun clickRequestForDetails(request: PatternRequest) {
         // Get the modal
-        var modal = document.getElementById("workloadDetails");
+        val modal = document.getElementById("workloadDetails")
 
         if (modal != null) {
             //Fill modal
@@ -259,9 +238,7 @@ class generate : ProgressListener{
             //Fill div
             for (request in request.apiRequests) {
                 val elem = buildApiRequestDiv(request)
-                if (detailsDiv != null) {
-                    detailsDiv.appendChild(elem)
-                }
+                detailsDiv?.appendChild(elem)
             }
 
             //Show modal
@@ -294,14 +271,8 @@ class generate : ProgressListener{
         return p
     }
 
-    fun closeWorkloadDetails() {
+    private fun closeWorkloadDetails() {
         // Get the modal
-        var modal = document.getElementById("workloadDetails");
-        if (modal != null) {
-            //Hide modal
-            modal.setAttribute("style", "display: none")
-        }
-
+        document.getElementById("workloadDetails")?.setAttribute("style", "display: none")
     }
-
 }

@@ -1,11 +1,12 @@
 package workload
 
 import com.google.gson.JsonElement
-import io.ktor.http.ContentType
 
-data class ApiRequest(val path: String,
-                      val parameter: Array<Pair<String, JsonElement>>,
-                      val headers: Array<Pair<String, String>>,
-                      val method: String,
-                      val body: JsonElement) {
+class ApiRequest {
+    var path:String = ""
+    var parameter: Array<Pair<String, String>> = arrayOf()
+    var headers:Array<Pair<String, String>> = arrayOf()
+    var method: String = ""
+    var body: JsonElement? = null
+    var contentType: String = ""
 }

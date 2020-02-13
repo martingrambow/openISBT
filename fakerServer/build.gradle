@@ -1,0 +1,23 @@
+group 'de.tuberlin.mcc'
+version '1.0-SNAPSHOT'
+
+task npmInitWindows(type: Exec) {
+    commandLine "npm.cmd", "init", "-y"
+}
+
+task npmInitUnix(type: Exec) {
+    commandLine "npm", "init", "-y"
+}
+
+task npmInstallWindows(type: Exec) {
+    commandLine "npm.cmd", "install", "json-schema-faker", "faker", "--save"
+}
+
+task npmInstallUnix(type: Exec) {
+    commandLine "npm", "install", "json-schema-faker", "faker", "--save"
+}
+
+task npmRun(type: Exec) {
+    commandLine "node", "server.js", "9080"
+}
+
