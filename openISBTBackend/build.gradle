@@ -54,3 +54,39 @@ jar {
         }
     }
 }
+
+void jarFactory(Jar jarTask, jarName, mainClass) {
+
+    jarTask.manifest {
+        attributes(
+                'Main-Class':  mainClass
+        )
+    }
+    jarTask.zip64 = true
+    jarTask.classifier = 'all'
+    jarTask.baseName = jarName
+    jarTask.from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+    jarTask.with jar
+    jarTask.doLast {
+        println 'Build ' + jarTask.name + ' ended'
+    }
+}
+
+task buildMatchingTool(type: Jar) {
+    jarFactory(it, 'matchingTool', 'tools.matchingtool.MatchingTool')
+}
+
+task buildWorkloadGenerator(type: Jar) {
+    jarFactory(it, 'wlgenerator', 'tools.wlgenerator.GeneratorTool')
+}
+
+task buildRunTool(type: Jar) {
+    jarFactory(it, 'runner', 'tools.runner.RunTool')
+}
+
+task buildBoxPlotTool(type: Jar) {
+    jarFactory(it, 'boxplot', 'tools.evaluation.BoxPlot')
+}
