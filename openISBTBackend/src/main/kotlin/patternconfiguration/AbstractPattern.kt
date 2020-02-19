@@ -1,4 +1,6 @@
-package de.tuberlin.mcc.patternconfiguration
+package patternconfiguration
+
+import de.tuberlin.mcc.patternconfiguration.Condition
 
 data class AbstractPattern (val name : String,
                             val sequence : Array<AbstractOperation>,

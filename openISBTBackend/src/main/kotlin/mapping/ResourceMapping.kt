@@ -2,8 +2,8 @@ package mapping
 
 import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
 import de.tuberlin.mcc.openapispecification.PathItemObject
-import de.tuberlin.mcc.patternconfiguration.AbstractOperation
-import de.tuberlin.mcc.patternconfiguration.AbstractPattern
+import patternconfiguration.AbstractOperation
+import patternconfiguration.AbstractPattern
 import de.tuberlin.mcc.patternconfiguration.PatternConfiguration
 import matching.MatchController
 import matching.units.*
@@ -64,7 +64,7 @@ class ResourceMapping//Add the pattern mapping for the current pattern to list o
         }
     }
 
-    private fun getPatternMappingInclOperations(aPattern:AbstractPattern, spec: OpenAPISPecifcation, topLevelResourcePath: String): PatternMapping {
+    private fun getPatternMappingInclOperations(aPattern: AbstractPattern, spec: OpenAPISPecifcation, topLevelResourcePath: String): PatternMapping {
 
         val mapping = PatternMapping(aPattern)
 

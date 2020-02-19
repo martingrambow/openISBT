@@ -167,8 +167,8 @@ class Mapper {
                     tmpRemainingPathsToCheck.add(path);
                 }
             }
-            counter++;
-            remainingPathsToCheck = tmpRemainingPathsToCheck;
+            counter++
+            remainingPathsToCheck = tmpRemainingPathsToCheck
         }
         return resourcePaths
     }

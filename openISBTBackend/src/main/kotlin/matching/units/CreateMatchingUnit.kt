@@ -1,14 +1,11 @@
 package matching.units
 
 import com.google.gson.GsonBuilder
-import com.google.gson.JsonObject
 import de.tuberlin.mcc.openapispecification.*
-import de.tuberlin.mcc.patternconfiguration.AbstractOperation
-import io.ktor.http.ContentType
+import patternconfiguration.AbstractOperation
 import mapping.PatternOperation
 import matching.MatchingUnit
 import matching.MatchingUtil
-import matching.ReferenceResolver
 import org.slf4j.LoggerFactory
 import patternconfiguration.AbstractPatternOperation
 
@@ -52,7 +49,4 @@ class CreateMatchingUnit : MatchingUnit{
         }
         return null
     }
-
-
-
 }
