@@ -1,6 +1,6 @@
 package mapping
 
-import de.tuberlin.mcc.patternconfiguration.AbstractPattern
+import patternconfiguration.AbstractPattern
 
 class PatternMapping(abstractPattern: AbstractPattern) {
 

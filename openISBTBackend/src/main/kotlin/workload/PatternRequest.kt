@@ -2,7 +2,7 @@ package workload
 
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonParser
-import de.tuberlin.mcc.patternconfiguration.AbstractPattern
+import patternconfiguration.AbstractPattern
 import mapping.PatternOperation
 import org.slf4j.LoggerFactory
 import patternconfiguration.AbstractPatternOperation

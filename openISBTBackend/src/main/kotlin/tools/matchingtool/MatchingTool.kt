@@ -8,6 +8,7 @@ import com.xenomachina.argparser.mainBody
 import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
 import de.tuberlin.mcc.patternconfiguration.PatternConfiguration
 import mapping.Mapper
+import mapping.globalmapping.GMapper
 import org.slf4j.LoggerFactory
 import util.loadOAS
 import util.loadPatternConfig
@@ -39,20 +40,25 @@ fun main(args: Array<String>) = mainBody  {
             throw InvalidArgumentException("Would overwrite mapping file, rename or use -o flag")
         }
 
-        val mapper = Mapper()
-        var mapping = mapper.mapPattern(spec, config)
+        //Global Mapper:
+        var specs: ArrayList<OpenAPISPecifcation> = ArrayList()
+        specs.add(spec)
+        //val mapper = GMapper(specs.toTypedArray(), config)
+        //Old Mapper:
+        val mapper = Mapper(spec, config)
+        var mapping = mapper.mapPattern()
 
         for (exclude in excludePaths) {
-            for (rmapping in mapping) {
+            for (rmapping in mapper.resourceMappings) {
                 if (exclude == rmapping.resourcePath) {
                     rmapping.enabled = false
                 }
             }
         }
-        mapping = mapper.calculateRequests(mapping, config)
+        mapper.calculateRequests()
 
         log.info("Supported resource mappings:")
-        for (rmapping in mapping) {
+        for (rmapping in mapper.resourceMappings) {
             if (rmapping.supported) {
                 log.info("Resource Mapping for " + rmapping.resourcePath + ":")
                 for (m in rmapping.patternMappingList) {
@@ -67,7 +73,7 @@ fun main(args: Array<String>) = mainBody  {
         }
 
         val gson: Gson = GsonBuilder().excludeFieldsWithModifiers(Modifier.TRANSIENT).create()
-        mappingFile.writeText(gson.toJson(mapping))
+        mappingFile.writeText(gson.toJson(mapper.resourceMappings))
         log.info("Done. See mappings in " + mappingFile .absoluteFile)
     }
 }

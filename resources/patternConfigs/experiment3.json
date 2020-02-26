@@ -1,0 +1,40 @@
+{
+  "totalPatternRequests": 100,
+  "patterns": [
+    {
+      "name": "CRE",
+      "sequence": [
+        {
+          "operation": "CREATE",
+          "output": "item"
+        },
+        {
+          "operation": "READ",
+          "input": "item",
+          "output": "item"
+        }
+      ],
+      "weight": 25
+    },
+    {
+      "name": "SubCreate",
+      "sequence": [
+        {
+          "operation": "CREATE",
+          "output": "user"
+        },
+        {
+          "operation": "CREATE",
+          "input": "user",
+          "output": "addressOrCard"
+        },
+        {
+          "operation": "SCAN",
+          "input": "user",
+          "output": "addressOrCardArray"
+        }
+      ],
+      "weight": 25
+    }],
+  "manualDecision": true
+}

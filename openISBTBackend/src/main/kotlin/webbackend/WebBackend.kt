@@ -121,8 +121,9 @@ fun Application.module() {
             val config:PatternConfiguration? = loadPatternConfig(patternConfigFile)
 
             if (spec != null && config != null) {
-                val mapper = Mapper()
-                val mapping = mapper.mapPattern(spec, config)
+                val mapper = Mapper(spec, config)
+                mapper.mapPattern()
+                mapper.calculateRequests()
 
                 val r = Random()
                 var found: Boolean
@@ -132,7 +133,7 @@ fun Application.module() {
                     found = resourceMappings[id] != null
                 } while (found)
 
-                resourceMappings[id] = mapping
+                resourceMappings[id] = mapper.resourceMappings
 
                 call.response.header("Access-Control-Allow-Origin", "*")
                 call.respondText("Mapping is stored with key $id", ContentType.Application.Any)
@@ -168,7 +169,9 @@ fun Application.module() {
                         mapping.enabled = enabled
                     }
                 }
-                resourceMappings[mappingID] = Mapper().calculateRequests(mappingList, config)
+                val mapper = Mapper(null, config)
+                mapper.resourceMappings = resourceMappings.getValue(mappingID)
+                mapper.calculateRequests()
             }
 
             call.response.header("Access-Control-Allow-Origin", "*")

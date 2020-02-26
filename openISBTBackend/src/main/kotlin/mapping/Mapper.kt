@@ -4,11 +4,17 @@ import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
 import de.tuberlin.mcc.patternconfiguration.PatternConfiguration
 import org.slf4j.LoggerFactory
 
-class Mapper {
+class Mapper(val openApi:OpenAPISPecifcation?, val config: PatternConfiguration) {
 
-    val log = LoggerFactory.getLogger(Class.forName("mapping.Mapper"));
+    val log = LoggerFactory.getLogger("Mapper")
 
-    fun mapPattern(openApi:OpenAPISPecifcation, config: PatternConfiguration):ArrayList<ResourceMapping> {
+    var resourceMappings:ArrayList<ResourceMapping> = ArrayList()
+
+    fun mapPattern(): Boolean {
+        if (openApi == null) {
+            log.error("No OpenAPI specification.")
+            return false
+        }
 
         var resourceMappingList = ArrayList<ResourceMapping>()
 
@@ -66,13 +72,13 @@ class Mapper {
                 resourceMapping.checkAndSetSupport()
             }
         }
-
-        return calculateRequests(resourceMappingList, config)
+        resourceMappings = resourceMappingList
+        return true
     }
 
-    fun calculateRequests(resourceMappingList:ArrayList<ResourceMapping>, config: PatternConfiguration) : ArrayList<ResourceMapping> {
+    fun calculateRequests() {
         //Set all request numbers to 0
-        for (mapping in resourceMappingList) {
+        for (mapping in resourceMappings) {
             mapping.numberOfRequests = 0
             for (patternMapping in mapping.patternMappingList) {
                 patternMapping.requests = 0
@@ -86,14 +92,14 @@ class Mapper {
 
         //Distribute total requests according to weights
         var supportedAndEnabledPaths:ArrayList<ResourceMapping> = ArrayList()
-        for (mapping in resourceMappingList) {
+        for (mapping in resourceMappings) {
             if (mapping.supported && mapping.enabled) {
                 supportedAndEnabledPaths.add(mapping)
             }
         }
         if (supportedAndEnabledPaths.size > 0) {
             var requestsPerTopLevelPath = config.totalPatternRequests / supportedAndEnabledPaths.size;
-            for (mapping in resourceMappingList) {
+            for (mapping in resourceMappings) {
                 if (mapping.supported && mapping.enabled) {
                     //Distribute according to weight
                     mapping.numberOfRequests = requestsPerTopLevelPath
@@ -125,7 +131,6 @@ class Mapper {
                 }
             }
         }
-        return resourceMappingList
     }
 
 

@@ -23,7 +23,7 @@ class RunnerArguments(parser: ArgParser) {
             throw InvalidArgumentException(File(resultsFileName).absolutePath + " already exists.")
         }
         if (File(resultsFileName).exists() && overwrite) {
-            println("Will overwrite workload file")
+            println("Will overwrite results file")
         }
     }
 
