@@ -20,15 +20,15 @@ class PatchMatchingUnit : MatchingUnit{
 
     override fun match(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path: String): PatternOperation? {
         if (pathItemObject.patch != null) {
-            var operation = PatternOperation(abstractOperation, AbstractPatternOperation.PATCH)
-            operation.path = path
+            val operation = PatternOperation(abstractOperation, AbstractPatternOperation.PATCH)
+            operation.path = spec.servers[0].url + path
 
             //Determine input and output values
-            var patchObject = pathItemObject.patch
+            val patchObject = pathItemObject.patch
             log.debug("    " + GsonBuilder().create().toJson(patchObject))
             if (patchObject.requestBody != null) {
                 //Operation requires some request body
-                var body = MatchingUtil().parseRequestBody(patchObject.requestBody, spec)
+                val body = MatchingUtil().parseRequestBody(patchObject.requestBody, spec)
                 if (body != null) {
                     operation.requiredBody = body
                 }
@@ -40,7 +40,7 @@ class PatchMatchingUnit : MatchingUnit{
                 }
             }
             if (patchObject.security != null) {
-                var header = MatchingUtil().parseApiKey(patchObject.security, spec)
+                val header = MatchingUtil().parseApiKey(patchObject.security, spec)
                 if (header != null) {
                     operation.headers.add(header)
                 }

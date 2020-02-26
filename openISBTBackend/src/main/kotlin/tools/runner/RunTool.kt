@@ -58,18 +58,12 @@ fun main(args: Array<String>) = mainBody  {
             runBlocking {
                 if (workerhandler.clearWorker(w)) {
                     if (noErrors && workerhandler.setID(w)) {
-                        if (noErrors && workerhandler.setEndpoint(w, endpoint)) {
-                            if (noErrors && workerhandler.setThreads(w, w.threads)) {
-                                //Everything ok
-                            } else {
-                                log.error("worker " + w.id + "(" + w.url + "), unable to set threads")
-                                noErrors = false
-                            }
+                        if (noErrors && workerhandler.setThreads(w, w.threads)) {
+                            //Everything ok
                         } else {
-                            log.error("worker " + w.id + "(" + w.url + "), unable to set endpoint")
+                            log.error("worker " + w.id + "(" + w.url + "), unable to set threads")
                             noErrors = false
                         }
-
                     } else {
                         log.error("worker " + w.id + "(" + w.url + "), unable to set ID")
                         noErrors = false

@@ -20,15 +20,15 @@ class DeleteMatchingUnit : MatchingUnit{
 
     override fun match(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path: String): PatternOperation? {
         if (pathItemObject.delete != null) {
-            var operation = PatternOperation(abstractOperation, AbstractPatternOperation.DELETE)
-            operation.path = path
+            val operation = PatternOperation(abstractOperation, AbstractPatternOperation.DELETE)
+            operation.path = spec.servers[0].url + path
 
             //Determine input and output values
-            var deleteObject = pathItemObject.delete
+            val deleteObject = pathItemObject.delete
             log.debug("    " + GsonBuilder().create().toJson(deleteObject))
             if (deleteObject.requestBody != null) {
                 //Operation requires some request body
-                var body = MatchingUtil().parseRequestBody(deleteObject.requestBody, spec)
+                val body = MatchingUtil().parseRequestBody(deleteObject.requestBody, spec)
                 if (body != null) {
                     operation.requiredBody = body
                 }
@@ -41,7 +41,7 @@ class DeleteMatchingUnit : MatchingUnit{
             }
 
             if (deleteObject.security != null) {
-                var header = MatchingUtil().parseApiKey(deleteObject.security, spec)
+                val header = MatchingUtil().parseApiKey(deleteObject.security, spec)
                 if (header != null) {
                     operation.headers.add(header)
                 }

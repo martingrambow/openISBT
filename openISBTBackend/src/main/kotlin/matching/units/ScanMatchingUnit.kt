@@ -49,15 +49,15 @@ class ScanMatchingUnit : MatchingUnit{
                 }
             }
             if (listReturned) {
-                var operation = PatternOperation(abstractOperation, AbstractPatternOperation.SCAN)
-                operation.path = path
+                val operation = PatternOperation(abstractOperation, AbstractPatternOperation.SCAN)
+                operation.path = spec.servers[0].url + path
 
                 //Determine input and output values
-                var scanObject = pathItemObject.get
+                val scanObject = pathItemObject.get
                 log.debug("    " + GsonBuilder().create().toJson(scanObject))
                 if (scanObject.requestBody != null) {
                     //Operation requires some request body
-                    var body = MatchingUtil().parseRequestBody(scanObject.requestBody, spec)
+                    val body = MatchingUtil().parseRequestBody(scanObject.requestBody, spec)
                     if (body != null) {
                         operation.requiredBody = body
                     }
@@ -69,7 +69,7 @@ class ScanMatchingUnit : MatchingUnit{
                     }
                 }
                 if (scanObject.security != null) {
-                    var header = MatchingUtil().parseApiKey(scanObject.security, spec)
+                    val header = MatchingUtil().parseApiKey(scanObject.security, spec)
                     if (header != null) {
                         operation.headers.add(header)
                     }

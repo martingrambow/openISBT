@@ -81,15 +81,6 @@ fun Application.module() {
             call.respondText(file, ContentType.Application.Json)
         }
 
-        get("/api/oasFiles/{id}/endpoints") {
-            val id = Integer.parseInt(call.parameters["id"])
-            val file = oasFiles.getOrDefault(id, "not found")
-            val spec:OpenAPISPecifcation? = loadOAS(file)
-
-            call.response.header("Access-Control-Allow-Origin", "*")
-            call.respondText(GsonBuilder().create().toJson(spec!!.servers), ContentType.Application.Json)
-        }
-
         post("/api/patternConfigs") {
             val r = Random()
             var found: Boolean
@@ -288,20 +279,14 @@ fun Application.module() {
 
         get("/api/run/initWorker/{workersetID?}") {
             val id = Integer.parseInt(call.parameters["workersetID"])
-            val endpoint: String
             var noErrors = true
             val worker = workerSets.getOrDefault(id, HashMap())
-            if (call.parameters.contains("endpoint") && call.parameters["endpoint"]?.length!! > 0 && worker.values.isNotEmpty()) {
-                endpoint = call.parameters.get(name = "endpoint")!!
+            if (worker.values.isNotEmpty()) {
                 for (w in worker.values) {
                     if (noErrors && workerhandler.clearWorker(w)) {
                         if (noErrors && workerhandler.setID(w)) {
-                            if (noErrors && workerhandler.setEndpoint(w, endpoint)) {
-                                if (noErrors && workerhandler.setThreads(w, w.threads)) {
-                                    //Everything ok
-                                } else {
-                                    noErrors = false
-                                }
+                            if (noErrors && workerhandler.setThreads(w, w.threads)) {
+                                //Everything ok
                             } else {
                                 noErrors = false
                             }
@@ -313,7 +298,7 @@ fun Application.module() {
                     }
                 }
             } else {
-                println("No endpoint or workers given")
+                println("No workers given")
                 noErrors = false
             }
             call.response.header("Access-Control-Allow-Origin", "*")

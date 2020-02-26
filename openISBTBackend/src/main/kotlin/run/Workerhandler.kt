@@ -47,25 +47,6 @@ class Workerhandler {
         return false
     }
 
-    suspend fun setEndpoint(worker: Worker, endpoint:String) : Boolean {
-        try {
-            val client = HttpClient()
-            val url = buildURL(worker, "/api/setEndpoint")
-            val response = client.put<String>(url) {
-                body = endpoint
-            }
-            client.close()
-            if (response == "OK") {
-                return true
-            } else {
-                log.error("Error while setEndpoint for worker " + worker.id + ", " + worker.url + ": " + response)
-            }
-        } catch (e:ConnectException) {
-            log.error("Error while setEndpoint for worker " + worker.id + ", " + worker.url + ": " + e.toString())
-        }
-        return false
-    }
-
     suspend fun setID(worker: Worker) : Boolean {
         try {
             val client = HttpClient()

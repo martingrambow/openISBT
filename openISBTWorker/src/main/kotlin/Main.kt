@@ -1,4 +1,3 @@
-import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import io.ktor.application.call
 import io.ktor.http.ContentType
@@ -13,21 +12,21 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import measurements.Statisticshandler
 import workload.PatternRequest
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 var id:Int = -1
 var status:String = "waiting"
 var workload: Array<PatternRequest>? = null
-var endpoint:String = ""
 var threads = 1
-var executor = Executors.newFixedThreadPool(threads)
+var executor: ExecutorService = Executors.newFixedThreadPool(threads)
 val statisticshandler = Statisticshandler()
 
 fun main(args: Array<String>) {
     var port = 8000
-    if (args.size > 0) {
-        port = args.get(0).toInt()
+    if (args.isNotEmpty()) {
+        port = args[0].toInt()
     }
     embeddedServer(Netty, port, module = Application::module).start(wait = true)
 }
@@ -39,7 +38,7 @@ fun Application.module() {
     install(Routing) {
 
         get("/api/getStatus") {
-            log.info("Responed " + status)
+            log.info("Responed $status")
             call.response.header("Access-Control-Allow-Origin", "*")
             call.respondText(status, ContentType.Text.Plain)
         }
@@ -59,7 +58,7 @@ fun Application.module() {
             executor = Executors.newFixedThreadPool(threads)
             if (workloadList != null) {
                 for (patternRequest in workloadList) {
-                    val worker = WorkloadRunnable(patternRequest, statisticshandler, endpoint, id)
+                    val worker = WorkloadRunnable(patternRequest, statisticshandler, id)
                     executor.execute(worker)
                 }
             }
@@ -78,30 +77,22 @@ fun Application.module() {
         get("/api/clear") {
             workload = null
             statisticshandler.reset()
-            endpoint = ""
             status = "waiting"
             log.info("Cleared")
             call.response.header("Access-Control-Allow-Origin", "*")
             call.respondText("OK", ContentType.Application.Json)
         }
 
-        put("/api/setEndpoint") {
-            endpoint = call.receiveText()
-            log.info("New endpoint is " + endpoint)
-            call.response.header("Access-Control-Allow-Origin", "*")
-            call.respondText("OK", ContentType.Text.Plain)
-        }
-
         put("/api/setID") {
             id = call.receiveText().toInt()
-            log.info("New ID is " + id)
+            log.info("New ID is $id")
             call.response.header("Access-Control-Allow-Origin", "*")
             call.respondText("OK", ContentType.Text.Plain)
         }
 
         put("/api/setThreads") {
             threads = call.receiveText().toInt()
-            log.info("New thread number is " + threads)
+            log.info("New thread number is $threads")
             call.response.header("Access-Control-Allow-Origin", "*")
             call.respondText("OK", ContentType.Text.Plain)
         }
@@ -110,26 +101,16 @@ fun Application.module() {
             log.info("Notifications requested")
 
             val list = statisticshandler.getNotitications()
-            if (list != null) {
-                call.response.header("Access-Control-Allow-Origin", "*")
-                call.respondText(GsonBuilder().create().toJson(list), ContentType.Text.Plain)
-            } else {
-                call.response.header("Access-Control-Allow-Origin", "*")
-                call.respondText("No measurements", ContentType.Text.Plain)
-            }
+            call.response.header("Access-Control-Allow-Origin", "*")
+            call.respondText(GsonBuilder().create().toJson(list), ContentType.Text.Plain)
         }
 
         get("/api/getMeasurements") {
             log.info("Measurements requested")
 
             val list = statisticshandler.getMeasurements()
-            if (list != null) {
-                call.response.header("Access-Control-Allow-Origin", "*")
-                call.respondText(GsonBuilder().create().toJson(list), ContentType.Text.Plain)
-            } else {
-                call.response.header("Access-Control-Allow-Origin", "*")
-                call.respondText("No measurements", ContentType.Text.Plain)
-            }
+            call.response.header("Access-Control-Allow-Origin", "*")
+            call.respondText(GsonBuilder().create().toJson(list), ContentType.Text.Plain)
         }
 
         options("/{...}") {
@@ -143,9 +124,6 @@ fun Application.module() {
 }
 
 fun loadWorkload(workloadAsText : String) : Array<PatternRequest>? {
-    val gsonBuilder:GsonBuilder = GsonBuilder()
-    val customGson:Gson = gsonBuilder.create();
-
-    var patternConfig = customGson.fromJson(workloadAsText, kotlin.Array<PatternRequest>::class.java)
-    return patternConfig
+    val customGson = GsonBuilder().create()
+    return customGson.fromJson(workloadAsText, Array<PatternRequest>::class.java)
 }

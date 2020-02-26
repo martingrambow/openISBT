@@ -36,15 +36,15 @@ class ReadMatchingUnit : MatchingUnit{
                 }
             }
             if (!listReturned && path.contains("{") && path.contains("}")) {
-                var operation = PatternOperation(abstractOperation, AbstractPatternOperation.READ)
-                operation.path = path
+                val operation = PatternOperation(abstractOperation, AbstractPatternOperation.READ)
+                operation.path = spec.servers[0].url + path
 
                 //Determine input and output values
-                var getObject = pathItemObject.get
+                val getObject = pathItemObject.get
                 log.debug("    " + GsonBuilder().create().toJson(getObject))
                 if (getObject.requestBody != null) {
                     //Operation requires some request body
-                    var body = MatchingUtil().parseRequestBody(getObject.requestBody, spec)
+                    val body = MatchingUtil().parseRequestBody(getObject.requestBody, spec)
                     if (body != null) {
                         operation.requiredBody = body
                     }
@@ -58,7 +58,7 @@ class ReadMatchingUnit : MatchingUnit{
                 }
 
                 if (getObject.security != null) {
-                    var header = MatchingUtil().parseApiKey(getObject.security, spec)
+                    val header = MatchingUtil().parseApiKey(getObject.security, spec)
                     if (header != null) {
                         operation.headers.add(header)
                     }

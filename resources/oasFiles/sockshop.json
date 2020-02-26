@@ -12,7 +12,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:8080"
+      "url": "http://ec2-34-249-43-215.eu-west-1.compute.amazonaws.com:8080"
     }
   ],
   "paths": {
