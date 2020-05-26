@@ -7,8 +7,9 @@ import com.xenomachina.argparser.InvalidArgumentException
 import com.xenomachina.argparser.mainBody
 import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
 import de.tuberlin.mcc.patternconfiguration.PatternConfiguration
-import mapping.Mapper
+import mapping.IMapper
 import mapping.globalmapping.GMapper
+import mapping.simplemapping.Mapper
 import org.slf4j.LoggerFactory
 import util.loadOAS
 import util.loadPatternConfig
@@ -41,39 +42,14 @@ fun main(args: Array<String>) = mainBody  {
         }
 
         //Global Mapper:
-        var specs: ArrayList<OpenAPISPecifcation> = ArrayList()
-        specs.add(spec)
-        //val mapper = GMapper(specs.toTypedArray(), config)
         //Old Mapper:
-        val mapper = Mapper(spec, config)
-        var mapping = mapper.mapPattern()
-
-        for (exclude in excludePaths) {
-            for (rmapping in mapper.resourceMappings) {
-                if (exclude == rmapping.resourcePath) {
-                    rmapping.enabled = false
-                }
-            }
-        }
+        val mapper:IMapper = Mapper()
+        mapper.addOpenAPISpec(spec)
+        mapper.setPatternConfiguration(config)
+        mapper.mapPattern(excludePaths.toTypedArray())
         mapper.calculateRequests()
-
-        log.info("Supported resource mappings:")
-        for (rmapping in mapper.resourceMappings) {
-            if (rmapping.supported) {
-                log.info("Resource Mapping for " + rmapping.resourcePath + ":")
-                for (m in rmapping.patternMappingList) {
-                    log.info("  Pattern " + m.aPattern.name + ", supported=" + m.supported + ", requests=" + m.requests + ":")
-                    for (operationlist in m.operationSequence) {
-                        for (entry in operationlist) {
-                            log.info("      Operation: " + entry.aOperation.operation + " path=" + entry.path)
-                        }
-                    }
-                }
-            }
-        }
-
-        val gson: Gson = GsonBuilder().excludeFieldsWithModifiers(Modifier.TRANSIENT).create()
-        mappingFile.writeText(gson.toJson(mapper.resourceMappings))
+        mapper.printSupportInfo()
+        mapper.saveMapping(mappingFile)
         log.info("Done. See mappings in " + mappingFile .absoluteFile)
     }
 }

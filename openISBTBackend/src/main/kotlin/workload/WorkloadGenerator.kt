@@ -1,7 +1,7 @@
 package workload
 
 import kotlinx.coroutines.runBlocking
-import mapping.ResourceMapping
+import mapping.simplemapping.ResourceMapping
 import org.slf4j.LoggerFactory
 
 class WorkloadGenerator {

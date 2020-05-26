@@ -1,4 +1,4 @@
-package mapping
+package mapping.simplemapping
 
 import patternconfiguration.AbstractPattern
 

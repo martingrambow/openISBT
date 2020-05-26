@@ -3,7 +3,7 @@ package matching
 import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
 import de.tuberlin.mcc.openapispecification.PathItemObject
 import patternconfiguration.AbstractOperation
-import mapping.PatternOperation
+import mapping.simplemapping.PatternOperation
 import org.slf4j.LoggerFactory
 
 class MatchController {
@@ -16,7 +16,7 @@ class MatchController {
         matchUnitList.add(unit)
     }
 
-    fun matchPatternOperation(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path:String):PatternOperation? {
+    fun matchPatternOperation(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path:String): PatternOperation? {
         for (unit in matchUnitList) {
             if (abstractOperation.operation.equals(unit.getSupportedOperation())) {
                 log.debug("Check " + abstractOperation.operation + " for path " + path + " ...")

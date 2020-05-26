@@ -209,7 +209,7 @@ class check {
 
         //Operation cell on the left
         val operationCell = document.createElement("td") as HTMLTableCellElement
-        operationCell.innerHTML = operations[0].aPatternOperation;
+        operationCell.innerHTML = operations[0].abstractPatternOperation
 
         //Mapping cell on the right
         val mappingCell = document.createElement("td") as HTMLTableCellElement
@@ -233,16 +233,16 @@ class check {
         abstractMappingDiv.appendChild(abstractPatternHeadline)
 
         //Fill abstract mapping div
-        val inputLabel = createParagraphElement(getTextOrMinus("input", operation.aOperation.input))
+        val inputLabel = createParagraphElement(getTextOrMinus("input", operation.abstractOperation.input))
         inputLabel.addClass("abstractMappingLabel")
 
-        val selectorLabel = createParagraphElement(getTextOrMinus("selector", operation.aOperation.selector))
+        val selectorLabel = createParagraphElement(getTextOrMinus("selector", operation.abstractOperation.selector))
         selectorLabel.addClass("abstractMappingLabel")
 
-        val outputLabel = createParagraphElement(getTextOrMinus("output", operation.aOperation.output))
+        val outputLabel = createParagraphElement(getTextOrMinus("output", operation.abstractOperation.output))
         outputLabel.addClass("abstractMappingLabel")
 
-        val waitLabel = createParagraphElement(getTextOrMinus("wait", operation.aOperation.wait.toString()))
+        val waitLabel = createParagraphElement(getTextOrMinus("wait", operation.abstractOperation.wait.toString()))
         waitLabel.addClass("abstractMappingLabel")
 
         abstractMappingDiv.appendChild(inputLabel)

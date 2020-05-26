@@ -1,4 +1,4 @@
-package mapping
+package mapping.simplemapping
 
 import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
 import de.tuberlin.mcc.openapispecification.PathItemObject
@@ -109,7 +109,7 @@ class ResourceMapping//Add the pattern mapping for the current pattern to list o
         }
     }
 
-    private fun matchPathItemObject(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path:String):PatternOperation? {
+    private fun matchPathItemObject(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path:String): PatternOperation? {
         //Cancel if there is a subresource
         if (path.contains("{") && path.contains("}/")) {
             return null

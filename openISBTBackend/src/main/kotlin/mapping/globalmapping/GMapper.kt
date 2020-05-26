@@ -2,7 +2,6 @@ package mapping.globalmapping
 
 import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
 import de.tuberlin.mcc.patternconfiguration.PatternConfiguration
-import mapping.PatternMapping
 import org.slf4j.LoggerFactory
 
 class GMapper(val openAPiSpecs: Array<OpenAPISPecifcation>, val patternConfiguration:PatternConfiguration) {

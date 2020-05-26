@@ -2,8 +2,8 @@ package dataobjects
 
 import kotlin.js.Json
 
-data class PatternOperation (var aOperation:AbstractOperation,
-                             var aPatternOperation:String,
+data class PatternOperation (var abstractOperation:AbstractOperation,
+                             var abstractPatternOperation:String,
                              var path:String,
                              var requests:Int,
                              var parameters:Array<ParameterObject>, //List of required parameters

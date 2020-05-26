@@ -3,7 +3,7 @@ package workload
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonParser
 import patternconfiguration.AbstractPattern
-import mapping.PatternOperation
+import mapping.simplemapping.PatternOperation
 import org.slf4j.LoggerFactory
 import patternconfiguration.AbstractPatternOperation
 
@@ -27,14 +27,14 @@ class PatternRequest(var id: Int, var resource: String, var abstractPattern: Abs
                 operation = operationList[idx]
             }
 
-            log.debug("Generate request for operation " + operation.aOperation.operation + " (" + operation.path +")...")
+            log.debug("Generate request for operation " + operation.abstractOperation.operation + " (" + operation.path +")...")
 
             val req = ApiRequest()
             req.path = operation.path
             log.debug("Path is " + operation.path)
 
             //Fill req method
-            when (operation.aPatternOperation) {
+            when (operation.abstractPatternOperation) {
 
                 AbstractPatternOperation.READ -> req.method = "GET"
                 AbstractPatternOperation.SCAN -> req.method = "GET"
@@ -44,7 +44,7 @@ class PatternRequest(var id: Int, var resource: String, var abstractPattern: Abs
                 AbstractPatternOperation.DELETE -> req.method = "DELETE"
                 else -> {
                     req.method = "undefined"
-                    log.error("Method for operation " + operation.aOperation.operation + " is undefined.")
+                    log.error("Method for operation " + operation.abstractOperation.operation + " is undefined.")
                 }
             }
             log.debug("Method is " + req.method)

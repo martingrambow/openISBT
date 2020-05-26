@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder
 import com.xenomachina.argparser.ArgParser
 import com.xenomachina.argparser.InvalidArgumentException
 import com.xenomachina.argparser.mainBody
-import mapping.ResourceMapping
+import mapping.simplemapping.ResourceMapping
 import org.slf4j.LoggerFactory
 import util.loadMapping
 import util.readFile

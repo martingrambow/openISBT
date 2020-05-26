@@ -1,12 +1,13 @@
 package mapping.globalmapping
 
 import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
+import mapping.simplemapping.PatternOperation
 import patternconfiguration.AbstractOperation
 
 class GMapping(val openAPiSpecs: Array<OpenAPISPecifcation>) {
 
     // Sequence of concrete operations
-    var patternOperations:ArrayList<GPatternOperation> = ArrayList()
+    var patternOperations:ArrayList<PatternOperation> = ArrayList()
     //number of requests which should be sent according to this mapping
     var numberOfRequests:Int = 0
     //true, if the user wants to benchmark this mapping; (true per default, can be changed in GUI)

@@ -5,7 +5,7 @@ import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
 import de.tuberlin.mcc.openapispecification.PathItemObject
 import de.tuberlin.mcc.openapispecification.SchemaObject
 import patternconfiguration.AbstractOperation
-import mapping.PatternOperation
+import mapping.simplemapping.PatternOperation
 import matching.MatchingUnit
 import matching.MatchingUtil
 import matching.ReferenceResolver

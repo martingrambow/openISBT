@@ -15,8 +15,9 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import mapping.Mapper
-import mapping.ResourceMapping
+import mapping.IMapper
+import mapping.simplemapping.Mapper
+import mapping.simplemapping.ResourceMapping
 import measurement.PatternMeasurement
 import run.Worker
 import run.Workerhandler
@@ -112,8 +113,10 @@ fun Application.module() {
             val config:PatternConfiguration? = loadPatternConfig(patternConfigFile)
 
             if (spec != null && config != null) {
-                val mapper = Mapper(spec, config)
-                mapper.mapPattern()
+                val mapper:Mapper = Mapper()
+                mapper.addOpenAPISpec(spec)
+                mapper.setPatternConfiguration(config)
+                mapper.mapPattern(emptyArray())
                 mapper.calculateRequests()
 
                 val r = Random()
@@ -160,7 +163,8 @@ fun Application.module() {
                         mapping.enabled = enabled
                     }
                 }
-                val mapper = Mapper(null, config)
+                val mapper = Mapper()
+                mapper.setPatternConfiguration(config)
                 mapper.resourceMappings = resourceMappings.getValue(mappingID)
                 mapper.calculateRequests()
             }

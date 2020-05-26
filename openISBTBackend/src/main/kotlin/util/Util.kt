@@ -6,7 +6,7 @@ import com.google.gson.JsonDeserializer
 import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
 import de.tuberlin.mcc.openapispecification.PathsObject
 import de.tuberlin.mcc.patternconfiguration.PatternConfiguration
-import mapping.ResourceMapping
+import mapping.simplemapping.ResourceMapping
 import measurement.PatternMeasurement
 import openapispecification.ResponsesObject
 import openapispecification.deserializer.PathsObjectDeserializer

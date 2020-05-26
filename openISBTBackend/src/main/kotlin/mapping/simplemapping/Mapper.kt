@@ -1,16 +1,40 @@
-package mapping
+package mapping.simplemapping
 
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
 import de.tuberlin.mcc.patternconfiguration.PatternConfiguration
+import mapping.IMapper
 import org.slf4j.LoggerFactory
+import java.io.File
+import java.lang.reflect.Modifier
 
-class Mapper(val openApi:OpenAPISPecifcation?, val config: PatternConfiguration) {
-
+class Mapper :IMapper{
     val log = LoggerFactory.getLogger("Mapper")
-
     var resourceMappings:ArrayList<ResourceMapping> = ArrayList()
 
-    fun mapPattern(): Boolean {
+    private var config: PatternConfiguration? = null
+    private var openApi:OpenAPISPecifcation? = null
+
+    override fun setPatternConfiguration(configuration: PatternConfiguration) {
+        config = configuration
+    }
+
+    override fun addOpenAPISpec(spec: OpenAPISPecifcation) {
+        openApi = spec
+    }
+
+    private fun excludePaths(paths: Array<String>) {
+        for (exclude in paths) {
+            for (rmapping in resourceMappings) {
+                if (exclude == rmapping.resourcePath) {
+                    rmapping.enabled = false
+                }
+            }
+        }
+    }
+
+    override fun mapPattern(excludePaths: Array<String>): Boolean {
         if (openApi == null) {
             log.error("No OpenAPI specification.")
             return false
@@ -19,7 +43,7 @@ class Mapper(val openApi:OpenAPISPecifcation?, val config: PatternConfiguration)
         var resourceMappingList = ArrayList<ResourceMapping>()
 
         //Determine top level resources
-        val resourcePaths = getTopLevelResourcePaths(openApi)
+        val resourcePaths = getTopLevelResourcePaths(openApi!!)
         log.info("Top level paths:")
         for (path in resourcePaths) {
             log.info("-> " + path)
@@ -30,7 +54,7 @@ class Mapper(val openApi:OpenAPISPecifcation?, val config: PatternConfiguration)
         //and map them to given patternMappingList
         for (path in resourcePaths) {
             log.debug("Top Level Path: " + path)
-            var mapping = ResourceMapping(openApi, config, path)
+            var mapping = ResourceMapping(openApi!!, config!!, path)
             resourceMappingList.add(mapping)
 
             log.info("Resource Mapping for " + path + ":")
@@ -39,7 +63,7 @@ class Mapper(val openApi:OpenAPISPecifcation?, val config: PatternConfiguration)
                 log.info("  Pattern " + mapping.aPattern.name + ", supported=" + mapping.supported + ", requests=" + mapping.requests + ":")
                 for (operationlist in mapping.operationSequence) {
                     for (entry in operationlist) {
-                        log.info("      Operation: " + entry.aOperation.operation + " path=" + entry.path)
+                        log.info("      Operation: " + entry.abstractOperation.operation + " path=" + entry.path)
                     }
                 }
             }
@@ -73,10 +97,11 @@ class Mapper(val openApi:OpenAPISPecifcation?, val config: PatternConfiguration)
             }
         }
         resourceMappings = resourceMappingList
+        excludePaths(excludePaths)
         return true
     }
 
-    fun calculateRequests() {
+    override fun calculateRequests() {
         //Set all request numbers to 0
         for (mapping in resourceMappings) {
             mapping.numberOfRequests = 0
@@ -98,7 +123,7 @@ class Mapper(val openApi:OpenAPISPecifcation?, val config: PatternConfiguration)
             }
         }
         if (supportedAndEnabledPaths.size > 0) {
-            var requestsPerTopLevelPath = config.totalPatternRequests / supportedAndEnabledPaths.size;
+            var requestsPerTopLevelPath = config!!.totalPatternRequests / supportedAndEnabledPaths.size;
             for (mapping in resourceMappings) {
                 if (mapping.supported && mapping.enabled) {
                     //Distribute according to weight
@@ -133,8 +158,30 @@ class Mapper(val openApi:OpenAPISPecifcation?, val config: PatternConfiguration)
         }
     }
 
+    override fun printSupportInfo() {
+        log.info("Supported resource mappings:")
+        for (rmapping in resourceMappings) {
+            if (rmapping.supported) {
+                log.info("Resource Mapping for " + rmapping.resourcePath + ":")
+                for (m in rmapping.patternMappingList) {
+                    log.info("  Pattern " + m.aPattern.name + ", supported=" + m.supported + ", requests=" + m.requests + ":")
+                    for (operationlist in m.operationSequence) {
+                        for (entry in operationlist) {
+                            log.info("      Operation: " + entry.abstractOperation.operation + " path=" + entry.path)
+                        }
+                    }
+                }
+            }
+        }
+    }
 
-    fun getTopLevelResourcePaths(openApi: OpenAPISPecifcation):ArrayList<String> {
+    override fun saveMapping(file: File) {
+        val gson: Gson = GsonBuilder().excludeFieldsWithModifiers(Modifier.TRANSIENT).create()
+        file.writeText(gson.toJson(resourceMappings))
+    }
+
+
+    private fun getTopLevelResourcePaths(openApi: OpenAPISPecifcation):ArrayList<String> {
         var resourcePaths = ArrayList<String>()
 
         var remainingPathsToCheck:ArrayList<String> = ArrayList()
