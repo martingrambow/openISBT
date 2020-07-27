@@ -14,3 +14,4 @@ build
 /results.json
 /workload.json
 /fakerServer/package-lock.json
+/gradle
