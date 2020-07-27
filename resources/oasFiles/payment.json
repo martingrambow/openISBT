@@ -1,0 +1,97 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "",
+    "title": "Payment",
+    "description": "Payment service spec",
+    "license": {
+      "name": "MIT",
+      "url": "http://github.com/gruntjs/grunt/blob/master/LICENSE-MIT"
+    }
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "description": "",
+        "operationId": "/health > GET",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/paymentAuth": {
+      "post": {
+        "description": "Payment authorisation",
+        "operationId": "/paymentAuth > POST",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/paymentAuth"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://payment/"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "health": {
+        "title": "Health",
+        "type": "object",
+        "properties": {
+          "health": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "service": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string"
+                },
+                "time": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "health"
+        ]
+      },
+      "paymentAuth": {
+        "title": "paymentAuth response",
+        "type": "object",
+        "properties": {
+          "authorised": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "authorised"
+        ]
+      }
+    }
+  }
+}

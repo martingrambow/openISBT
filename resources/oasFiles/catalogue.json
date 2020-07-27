@@ -1,0 +1,225 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "",
+    "title": "Catalogue resources",
+    "description": "",
+    "license": {
+      "name": "MIT",
+      "url": "http://github.com/gruntjs/grunt/blob/master/LICENSE-MIT"
+    }
+  },
+  "paths": {
+    "/catalogue": {
+      "get": {
+        "description": "Catalogue API",
+        "operationId": "List catalogue",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json;charset=UTF-8": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Listresponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/catalogue/{id}": {
+      "get": {
+        "description": "",
+        "operationId": "Get an item",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "example": "a0a4f044-b040-410d-8ead-4de0446aec7e",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json; charset=UTF-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Getanitemresponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/catalogue/size": {
+      "get": {
+        "description": "",
+        "operationId": "Get size",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json;charset=UTF-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Getsizeresponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tags": {
+      "get": {
+        "description": "",
+        "operationId": "List_",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json;charset=UTF-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Listresponse3"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://catalogue/"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "Listresponse": {
+        "title": "List response",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "price": {
+            "type": "number",
+            "format": "double"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tag": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "imageUrl",
+          "price",
+          "count",
+          "tag"
+        ]
+      },
+      "Getanitemresponse": {
+        "title": "Get an item response",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "price": {
+            "type": "number",
+            "format": "double"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tag": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "imageUrl",
+          "price",
+          "count",
+          "tag"
+        ]
+      },
+      "Getsizeresponse": {
+        "title": "Get size response",
+        "type": "object",
+        "properties": {
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "size"
+        ]
+      },
+      "Listresponse3": {
+        "title": "List response3",
+        "type": "object",
+        "properties": {
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "tags"
+        ]
+      }
+    }
+  }
+}
