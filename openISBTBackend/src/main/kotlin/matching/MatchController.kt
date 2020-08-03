@@ -4,13 +4,16 @@ import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
 import de.tuberlin.mcc.openapispecification.PathItemObject
 import patternconfiguration.AbstractOperation
 import mapping.simplemapping.PatternOperation
+import matching.units.ScanMatchingUnit
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import patternconfiguration.AbstractPatternOperation
 
 class MatchController {
 
-    var matchUnitList:ArrayList<MatchingUnit> = ArrayList()
+    private var matchUnitList:ArrayList<MatchingUnit> = ArrayList()
     //Just to log what's happening
-    val log = LoggerFactory.getLogger("MatchController");
+    val log: Logger = LoggerFactory.getLogger("MatchController")
 
     fun registerMatchingUnit(unit:MatchingUnit) {
         matchUnitList.add(unit)
@@ -18,12 +21,21 @@ class MatchController {
 
     fun matchPatternOperation(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path:String): PatternOperation? {
         for (unit in matchUnitList) {
-            if (abstractOperation.operation.equals(unit.getSupportedOperation())) {
+            if (abstractOperation.operation == unit.getSupportedOperation()) {
                 log.debug("Check " + abstractOperation.operation + " for path " + path + " ...")
-                var operation: PatternOperation? = unit.match(pathItemObject, abstractOperation, spec, path)
+                val operation: PatternOperation? = unit.match(pathItemObject, abstractOperation, spec, path)
                 if (operation != null) {
                     //successfully matched
                     log.debug(unit.javaClass.name + " matches " + path)
+                    if (unit.getSupportedOperation() == AbstractPatternOperation.READ.name) {
+                        //Check if this operation also matches SCAN
+                        val unit2 = ScanMatchingUnit()
+                        if (unit2.match(pathItemObject, abstractOperation, spec, path ) != null) {
+                            //SCAN matches as well and has priority
+                            log.debug("Scan unit matches also, no read operation")
+                            continue
+                        }
+                    }
                     log.debug("-----------")
                     return operation
                 } else {

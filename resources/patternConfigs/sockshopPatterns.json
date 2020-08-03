@@ -1,0 +1,93 @@
+{
+  "totalPatternRequests": 100,
+  "patterns": [
+    {
+      "name": "LST",
+      "sequence": [
+        {
+          "operation": "SCAN",
+          "output": "list",
+          "wait": 15
+        },
+        {
+          "operation": "READ",
+          "input": "list",
+          "selector": "RANDOM",
+          "wait": 5
+        }
+      ],
+      "weight": 65
+    },
+    {
+      "name": "UPD",
+      "sequence": [
+        {
+          "operation": "SCAN",
+          "output": "resourceList",
+          "wait": 15
+        },
+        {
+          "operation": "READ",
+          "input": "resourceList",
+          "selector": "RANDOM",
+          "output": "item",
+          "wait": 5
+        },
+        {
+          "operation": "UPDATE",
+          "input": "item",
+          "wait": 5
+        }
+      ],
+      "weight": 20
+    },
+
+    {
+      "name": "SUB",
+      "sequence": [
+        {
+          "operation": "SCAN",
+          "output": "list",
+          "wait": 15
+        },
+        {
+          "operation": "CREATE",
+          "input": "list",
+          "selector": "RANDOM",
+          "output": "item",
+          "wait": 5
+        },
+        {
+          "operation": "SCAN",
+          "input": "list",
+          "selector": "RANDOMREF(0)",
+          "wait": 15
+        }
+      ],
+      "weight": 10
+    },
+    {
+      "name": "COMB",
+      "sequence": [
+        {
+          "operation": "SCAN",
+          "output": "list",
+          "wait": 15
+        },
+        {
+          "operation": "SCAN",
+          "output": "list2",
+          "wait": 15
+        },
+        {
+          "operation": "CREATE",
+          "input": "list, list2",
+          "selector": "RANDOM, RANDOM",
+          "output": "item",
+          "wait": 5
+        }
+      ],
+      "weight": 5
+    }],
+  "manualDecision": true
+}

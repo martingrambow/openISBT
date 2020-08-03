@@ -7,15 +7,16 @@ import patternconfiguration.AbstractOperation
 import mapping.simplemapping.PatternOperation
 import matching.MatchingUnit
 import matching.MatchingUtil
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import patternconfiguration.AbstractPatternOperation
 
 class ReadMatchingUnit : MatchingUnit{
 
-    val log = LoggerFactory.getLogger("ReadMatchingUnit");
+    val log: Logger = LoggerFactory.getLogger("ReadMatchingUnit")
 
     override fun getSupportedOperation(): String {
-        return AbstractPatternOperation.READ.name;
+        return AbstractPatternOperation.READ.name
     }
 
     override fun match(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path: String): PatternOperation? {
@@ -23,13 +24,13 @@ class ReadMatchingUnit : MatchingUnit{
 
             //get could support READ or SCAN
             //If no array is returned, READ is supported
-            var listReturned = false;
-            for (response in pathItemObject.get.responses.responses.values) {
+            var listReturned = false
+            for (response in pathItemObject.get.responses!!.responses.values) {
                 if (response.content != null) {
                     for (content in response.content.values) {
                         if (content.schema != null) {
                             if (content.schema.type == "array") {
-                                listReturned = true;
+                                listReturned = true
                             }
                         }
                     }
@@ -37,6 +38,7 @@ class ReadMatchingUnit : MatchingUnit{
             }
             if (!listReturned && path.contains("{") && path.contains("}")) {
                 val operation = PatternOperation(abstractOperation, AbstractPatternOperation.READ)
+                operation.serviceName = spec.info.title
                 operation.path = spec.servers[0].url + path
 
                 //Determine input and output values
@@ -63,6 +65,11 @@ class ReadMatchingUnit : MatchingUnit{
                         operation.headers.add(header)
                     }
                 }
+
+                if (getObject.responses != null){
+                    operation.produces = MatchingUtil().parseResponse(getObject.responses, spec)
+                }
+
                 return operation
             }
         }

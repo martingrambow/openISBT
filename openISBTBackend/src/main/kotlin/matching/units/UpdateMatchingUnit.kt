@@ -7,20 +7,22 @@ import patternconfiguration.AbstractOperation
 import mapping.simplemapping.PatternOperation
 import matching.MatchingUnit
 import matching.MatchingUtil
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import patternconfiguration.AbstractPatternOperation
 
 class UpdateMatchingUnit : MatchingUnit{
 
-    val log = LoggerFactory.getLogger("UpdateMatchingUnit");
+    val log: Logger = LoggerFactory.getLogger("UpdateMatchingUnit")
 
     override fun getSupportedOperation(): String {
-        return AbstractPatternOperation.UPDATE.name;
+        return AbstractPatternOperation.UPDATE.name
     }
 
     override fun match(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path: String): PatternOperation? {
         if (pathItemObject.put != null) {
             val operation = PatternOperation(abstractOperation, AbstractPatternOperation.UPDATE)
+            operation.serviceName = spec.info.title
             operation.path = spec.servers[0].url + path
 
             //Determine input and output values
@@ -44,6 +46,10 @@ class UpdateMatchingUnit : MatchingUnit{
                 if (header != null) {
                     operation.headers.add(header)
                 }
+            }
+
+            if (updateObject.responses != null){
+                operation.produces = MatchingUtil().parseResponse(updateObject.responses, spec)
             }
 
             return operation

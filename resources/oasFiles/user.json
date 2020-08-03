@@ -402,7 +402,7 @@
   },
   "servers": [
     {
-      "url": "http://user/"
+      "url": "http://ec2-1pudding.com:9006"
     }
   ],
   "components": {
@@ -502,6 +502,9 @@
           "username": {
             "type": "string"
           },
+          "id": {
+            "type": "string"
+          },
           "_links": {
             "type": "object",
             "properties": {
@@ -575,6 +578,9 @@
           "ccv": {
             "type": "string"
           },
+          "id": {
+            "type": "string"
+          },
           "_links": {
             "type": "object",
             "properties": {
@@ -630,6 +636,9 @@
             "type": "string"
           },
           "country": {
+            "type": "string"
+          },
+          "id": {
             "type": "string"
           },
           "_links": {
@@ -709,6 +718,14 @@
           },
           "password": {
             "description": "Password",
+            "type": "string"
+          },
+          "firstName": {
+            "description": "First name",
+            "type": "string"
+          },
+          "lastName": {
+            "description": "Last name",
             "type": "string"
           },
           "email": {

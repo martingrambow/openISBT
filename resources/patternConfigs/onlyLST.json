@@ -1,0 +1,22 @@
+{
+  "totalPatternRequests": 100,
+  "patterns": [
+    {
+      "name": "LST",
+      "sequence": [
+        {
+          "operation": "SCAN",
+          "output": "list",
+          "wait": 15
+        },
+        {
+          "operation": "READ",
+          "input": "list",
+          "selector": "RANDOM",
+          "wait": 5
+        }
+      ],
+      "weight": 20
+    }],
+  "manualDecision": true
+}

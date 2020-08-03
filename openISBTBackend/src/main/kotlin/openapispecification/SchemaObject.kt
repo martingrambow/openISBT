@@ -3,9 +3,9 @@ package de.tuberlin.mcc.openapispecification
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 
-data class SchemaObject (var `$ref`: String,
+data class SchemaObject (var `$ref`: String?,
                          var type:String,
-                         var properties:JsonObject,
+                         var properties:JsonObject?,
                          var items:JsonObject,
                          var enum: JsonArray,
                          var faker: String,

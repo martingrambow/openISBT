@@ -12,12 +12,14 @@ class MatchingArguments(parser: ArgParser) {
             help = "overwrite existing mapping file").default(false)
 
 
-    val openApiSpecFile: File by parser.storing(
+    val openApiSpecFiles: MutableList<File> by parser.adding(
             "-s", "--specification",
-            help = "Input: openAPI 3.0 specification file") { File(this) }
+            help = "Input: openAPI 3.0 specification file(s)") { File(this) }
             .addValidator {
-                if (!checkFile(openApiSpecFile)) {
-                    throw InvalidArgumentException("Invalid openAPISpec")
+                for (f in openApiSpecFiles) {
+                    if (!checkFile(f)) {
+                        throw InvalidArgumentException("Invalid openAPISpec: " + f.absoluteFile)
+                    }
                 }
             }
 
@@ -29,6 +31,19 @@ class MatchingArguments(parser: ArgParser) {
                     throw InvalidArgumentException("Invalid workload definition")
                 }
             }
+
+    val serviceLinksFile: File by parser.storing(
+            "-l", "--serviceLinks",
+            help = "Input: service links file") { File(this) }
+            .addValidator {
+                if (!checkFile(serviceLinksFile)) {
+                    throw InvalidArgumentException("Invalid workload definition")
+                }
+            }
+
+    val excludePaths by parser.adding(
+            "-e", "--exclude",
+            help = "paths which should be excluded from mapping")
 
     val mappingFile: File by parser.storing(
             "-m", "--mapping",
@@ -42,8 +57,4 @@ class MatchingArguments(parser: ArgParser) {
                     println("Will overwrite mapping file")
                 }
             }
-
-    val excludePaths by parser.adding(
-            "-e", "--exclude",
-            help = "path which should be excluded from mapping")
 }

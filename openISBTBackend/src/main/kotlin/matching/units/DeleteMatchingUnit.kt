@@ -7,20 +7,22 @@ import patternconfiguration.AbstractOperation
 import mapping.simplemapping.PatternOperation
 import matching.MatchingUnit
 import matching.MatchingUtil
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import patternconfiguration.AbstractPatternOperation
 
 class DeleteMatchingUnit : MatchingUnit{
 
-    val log = LoggerFactory.getLogger("DeleteMatchingUnit");
+    val log: Logger = LoggerFactory.getLogger("DeleteMatchingUnit")
 
     override fun getSupportedOperation(): String {
-        return AbstractPatternOperation.DELETE.name;
+        return AbstractPatternOperation.DELETE.name
     }
 
     override fun match(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path: String): PatternOperation? {
         if (pathItemObject.delete != null) {
             val operation = PatternOperation(abstractOperation, AbstractPatternOperation.DELETE)
+            operation.serviceName = spec.info.title
             operation.path = spec.servers[0].url + path
 
             //Determine input and output values
@@ -45,6 +47,10 @@ class DeleteMatchingUnit : MatchingUnit{
                 if (header != null) {
                     operation.headers.add(header)
                 }
+            }
+
+            if (deleteObject.responses != null){
+                operation.produces = MatchingUtil().parseResponse(deleteObject.responses, spec)
             }
 
             return operation

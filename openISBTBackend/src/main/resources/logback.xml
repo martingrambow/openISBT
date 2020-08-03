@@ -25,6 +25,9 @@
 
     <logger name="PatternRequest" level="DEBUG"/>
     <logger name="SchemaFaker" level="DEBUG"/>
+    <logger name="GMapper" level="DEBUG"/>
+    <logger name="GMapping" level="DEBUG"/>
+    <logger name="MatchController" level="DEBUG"/>
     <logger name="org.eclipse.jetty" level="INFO"/>
     <logger name="io.netty" level="INFO"/>
 </configuration>

@@ -7,6 +7,7 @@ import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
 import de.tuberlin.mcc.openapispecification.PathsObject
 import de.tuberlin.mcc.patternconfiguration.PatternConfiguration
 import mapping.simplemapping.ResourceMapping
+import matching.link.ServiceLinkObject
 import measurement.PatternMeasurement
 import openapispecification.ResponsesObject
 import openapispecification.deserializer.PathsObjectDeserializer
@@ -52,6 +53,11 @@ fun loadMapping(mappingFile: String): Array<ResourceMapping>? {
 fun loadPatternConfig(patternConfigFile: String): PatternConfiguration? {
     val customGson = GsonBuilder().create()
     return customGson.fromJson(patternConfigFile, PatternConfiguration::class.java)
+}
+
+fun loadServiceLinksFile(serviceLinksFile: String): Array<ServiceLinkObject>? {
+    val customGson = GsonBuilder().create()
+    return customGson.fromJson(serviceLinksFile, Array<ServiceLinkObject>::class.java)
 }
 
 fun loadWorkload(workloadAsText : String) : Array<PatternRequest>? {

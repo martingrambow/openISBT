@@ -172,7 +172,7 @@
   },
   "servers": [
     {
-      "url": "http://carts/"
+      "url": "http://ec2-1pudding.com:9002"
     }
   ],
   "components": {
