@@ -1,0 +1,28 @@
+{
+  "totalPatternRequests": 100,
+  "patterns": [
+    {
+      "name": "UPD",
+      "sequence": [
+        {
+          "operation": "SCAN",
+          "output": "resourceList",
+          "wait": 15
+        },
+        {
+          "operation": "READ",
+          "input": "resourceList",
+          "selector": "RANDOM",
+          "output": "item",
+          "wait": 5
+        },
+        {
+          "operation": "UPDATE",
+          "input": "item",
+          "wait": 5
+        }
+      ],
+      "weight": 20
+    }],
+  "manualDecision": true
+}

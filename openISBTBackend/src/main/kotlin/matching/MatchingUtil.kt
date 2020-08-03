@@ -84,8 +84,10 @@ class MatchingUtil {
                     //Found a schema object
                     if ("object" == schemaObject.type.toLowerCase()) {
                         //Resolve References in schema object
-                        schemaObject.properties = ReferenceResolver().resolveReferencesInJsonObject(schemaObject.properties!!, spec)
-                        return GsonBuilder().create().toJsonTree(schemaObject).asJsonObject
+                        if (schemaObject.properties != null) {
+                            schemaObject.properties = ReferenceResolver().resolveReferencesInJsonObject(schemaObject.properties!!, spec)
+                            return GsonBuilder().create().toJsonTree(schemaObject).asJsonObject
+                        }
                     }
                     if ("array" == schemaObject.type.toLowerCase()) {
                         //Resolve References in schema object
@@ -103,7 +105,9 @@ class MatchingUtil {
         for (statuscode in responsesObject.responses.keys) {
             if (statuscode == "200" || statuscode == "201") {
                 var response= ReferenceResolver().resolveReferencesInJsonObject(GsonBuilder().create().toJsonTree(responsesObject.responses.getValue(statuscode)).asJsonObject, spec)
-                response = response.getAsJsonObject("content")
+                if (response.has("content")) {
+                    response = response.getAsJsonObject("content")
+                }
 
                 if (response != null) {
                     //Currently, we only support json schemes

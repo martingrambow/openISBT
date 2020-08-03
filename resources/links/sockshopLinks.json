@@ -10,5 +10,19 @@
     "parameterName1": "id",
     "prefix2": "/carts",
     "parameterName2": "customerId"
+  },
+  {
+    "prefix1": "/customers",
+    "parameterName1": "id",
+    "prefix2": "/cards",
+    "parameterName2": "userID"
   }
+,
+  {
+    "prefix1": "/customers",
+    "parameterName1": "id",
+    "prefix2": "/addresses",
+    "parameterName2": "userID"
+  }
+
 ]

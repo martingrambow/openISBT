@@ -99,7 +99,7 @@
   },
   "servers": [
     {
-      "url": "http://catalogue/"
+      "url": "http://ec2-1pudding.com:9003"
     }
   ],
   "components": {

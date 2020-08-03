@@ -95,22 +95,21 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
                         //Check dependencies for the matched operation
                         var resolved = true
 
+                        //Is there an input or a parameter in path?
+                        if (operation.input != null || (patternOperation.path.contains("{") && patternOperation.path.contains("}"))) {
+                            //There is some input which must be resolved
+                            resolved = false
+                        }
+
                         //Does the found operation require input(s)?
                         if (operation.input != null) {
-                            //There is some input required in the path
+                            //There is some input, resolve
                             if (patternOperation.path.contains("{") && patternOperation.path.contains("}")) {
-                                log.debug("operation requires a path input")
-                                //There is some input, resolve
-                                log.debug("Resolve input ${operation.input} ...")
+                                //There is some input required in the path
+                                log.debug("operation requires a path input: ${operation.input}")
                                 //Find dependent operation
                                 val inputName = operation.input
-                                var dependentOperation: PatternOperation? = null
-                                for (i in patternOperations.size - 1 downTo 0) {
-                                    if (dependentOperation == null && inputName == patternOperations[i].abstractOperation.output) {
-                                        dependentOperation = patternOperations[i]
-                                        log.debug("Found dependent operation: ${dependentOperation.abstractOperation.operation} to ${dependentOperation.path}")
-                                    }
-                                }
+                                val dependentOperation = findDependentOperation(inputName)
                                 if (dependentOperation == null) {
                                     log.debug("Found no output for input $inputName, skip here")
                                     resolved = false
@@ -118,73 +117,35 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
                                     //Inspect dependent operation and try to link to current one
 
                                     //same path prefix?
-                                    if (comparePathLevels(dependentOperation.path, patternOperation.path) > 0) {
-                                        //same domain, go on
-                                        log.debug("same path prefix")
-                                        var requiredParameterName = ""
-                                        for (parameter in patternOperation.parameters) {
-                                            if (parameter.has("in")) {
-                                                if (parameter.get("in").asString == "path") {
-                                                    requiredParameterName = parameter.get("name").asString
-                                                }
-                                            }
-                                        }
-                                        //Look for parameter name in output of dependent request
-                                        val output: JsonObject = dependentOperation.produces!!
-                                        val keyThere = lookForKey(requiredParameterName, output)
-                                        if (!keyThere) {
-                                            log.debug("key not found, not resolved")
-                                            resolved = false
-                                        }
-                                    } else {
+                                    if (resolveSamePrefixLinks(dependentOperation, patternOperation)) {
+                                        resolved = true
+                                    }
+                                    else {
                                         //not same domain, search for links
                                         log.debug("not in the same domain, search for links...")
-                                        resolved = false
-                                        //spec -> openAPI spec of current request
-                                        //dependentOperation -> operation which produces value(s)
-                                        //lookup dependent path
-                                        var dependentPath: String? = null
-                                        for (spec2 in openAPiSpecs) {
-                                            if (involvedServices.contains(spec2.info.title)) {
-                                                for (path2 in spec2.paths.paths.keys) {
-                                                    if (trimPath(dependentOperation.path) == path2) {
-                                                        dependentPath = path2
-                                                    }
-
-                                                }
-                                            }
-                                        }
-                                        //try to resolve dependency and iterate over links
-                                        if (dependentPath != null) {
-                                            for (link in serviceLinks) {
-                                                if (dependentPath.startsWith(link.prefix1) && trimPath(patternOperation.path).startsWith(link.prefix2)) {
-                                                    //found link, try to match patameters
-
-                                                    var linkFound = false
-                                                    if (lookForKey(link.parameterName1, dependentOperation.produces!!)) {
-                                                        for (p in patternOperation.parameters) {
-                                                            if (p.has("name") && p.get("name").asString == link.parameterName2) {
-                                                                //Found link in parameter
-                                                                log.debug("Found link in parameter")
-                                                                linkFound = true
-                                                            }
-                                                        }
-                                                        if (lookForKey(link.parameterName2, patternOperation.requiredBody)) {
-                                                            //Found link in required body
-                                                            log.debug("Found link in requried body")
-                                                            linkFound = true
-                                                        }
-                                                    }
-                                                    if (linkFound) {
-                                                        log.debug("Found link between " + link.prefix1 + " and " + patternOperation.path)
-                                                        resolved = true
-                                                    }
-                                                }
-                                            }
+                                        if (resolveManualLink(involvedServices, dependentOperation, patternOperation)) {
+                                            resolved = true
                                         }
                                     }
                                 }
+                            } else {
+                                //There is some input in the request body
+                                log.debug("operation requires a request body input: ${operation.input}")
+                                val inputName = operation.input
+                                val dependentOperation = findDependentOperation(inputName)
+                                if (dependentOperation == null) {
+                                    log.debug("Found no output for input $inputName, skip here")
+                                    resolved = false
+                                } else {
+                                    if (resolveManualLink(involvedServices, dependentOperation, patternOperation)) {
+                                        log.debug("RESOLVED!")
+                                        resolved = true
+                                    }
+
+                                }
+
                             }
+
                         }
 
                         //If all dependencies could be resolved, add to expanded list
@@ -230,6 +191,7 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
 
         //compare parts
         while (true) {
+            log.debug("IN LOOP for $tmp1 and $tmp2")
             val i1 = tmp1.indexOf('/',1)
             val i2 = tmp2.indexOf('/',1)
             var part1: String
@@ -243,6 +205,9 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
                 tmp2.substring(0, i2)
             } else {
                 tmp2
+            }
+            if (i1 == -1 && i2 == -1) {
+                return level
             }
             if (part1 == part2) {
                 level++
@@ -265,6 +230,84 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
         val i = tmp.indexOf('/')
         tmp = tmp.substring(i)
         return tmp
+    }
+
+    private fun findDependentOperation(inputName: String) : PatternOperation? {
+        var dependentOperation: PatternOperation? = null
+        for (i in patternOperations.size - 1 downTo 0) {
+            if (dependentOperation == null && inputName == patternOperations[i].abstractOperation.output) {
+                dependentOperation = patternOperations[i]
+                log.debug("Found dependent operation: ${dependentOperation.abstractOperation.operation} to ${dependentOperation.path}")
+                return dependentOperation
+            }
+        }
+        return null
+    }
+
+    private fun resolveSamePrefixLinks(dependentOperation: PatternOperation, patternOperation:PatternOperation) : Boolean {
+        if (comparePathLevels(dependentOperation.path, patternOperation.path) > 0) {
+            //same domain, go on
+            log.debug("same path prefix")
+            var requiredParameterName = ""
+            for (parameter in patternOperation.parameters) {
+                if (parameter.has("in")) {
+                    if (parameter.get("in").asString == "path") {
+                        requiredParameterName = parameter.get("name").asString
+                    }
+                }
+            }
+            //Look for parameter name in output of dependent request
+            val output: JsonObject = dependentOperation.produces!!
+            val keyThere = lookForKey(requiredParameterName, output)
+            if (keyThere) {
+                log.debug("key found, dependency resolved")
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun resolveManualLink(involvedServices : ArrayList<String>, dependentOperation: PatternOperation, patternOperation: PatternOperation) : Boolean {
+        var dependentPath: String? = null
+        for (spec2 in openAPiSpecs) {
+            if (involvedServices.contains(spec2.info.title)) {
+                for (path2 in spec2.paths.paths.keys) {
+                    if (trimPath(dependentOperation.path) == path2) {
+                        dependentPath = path2
+                    }
+
+                }
+            }
+        }
+        //try to resolve dependency and iterate over links
+        if (dependentPath != null) {
+            for (link in serviceLinks) {
+                if (dependentPath.startsWith(link.prefix1) && trimPath(patternOperation.path).startsWith(link.prefix2)) {
+                    //found link, try to match patameters
+
+                    var linkFound = false
+                    if (lookForKey(link.parameterName1, dependentOperation.produces!!)) {
+                        for (p in patternOperation.parameters) {
+                            if (p.has("name") && p.get("name").asString == link.parameterName2) {
+                                //Found link in parameter
+                                log.debug("Found link in parameter")
+                                linkFound = true
+                            }
+                        }
+                        if (lookForKey(link.parameterName2, patternOperation.requiredBody)) {
+                            //Found link in required body
+                            log.debug("Found link in required body")
+                            linkFound = true
+                        }
+                    }
+                    if (linkFound) {
+                        log.debug("Found link between " + link.prefix1 + " and " + patternOperation.path)
+                        return true
+                    }
+                }
+            }
+        }
+        return false
     }
 
 }

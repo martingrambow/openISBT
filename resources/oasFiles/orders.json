@@ -47,7 +47,7 @@
   },
   "servers": [
     {
-      "url": "http://orders/"
+      "url": "http://ec2-1pudding.com:9003"
     }
   ],
   "components": {
