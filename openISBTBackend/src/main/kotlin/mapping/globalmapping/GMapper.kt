@@ -48,7 +48,7 @@ class GMapper:IMapper {
 
         for (pattern in patternConfiguration!!.patterns) {
             //Find all possible interaction sequences for this pattern in all openAPI specifications
-            log.debug("Find all mappings for pattern ${pattern.name}:")
+            log.info("Find all mappings for pattern ${pattern.name}:")
             var prevMappings:ArrayList<GMapping> = ArrayList()
             val links = ArrayList<ServiceLinkObject>()
             if (serviceLinks != null) {

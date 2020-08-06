@@ -8,6 +8,7 @@ import matching.link.ServiceLinkObject
 import matching.units.*
 import org.slf4j.LoggerFactory
 import patternconfiguration.AbstractOperation
+import patternconfiguration.AbstractPatternOperation
 
 class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val serviceLinks: ArrayList<ServiceLinkObject>) {
 
@@ -47,8 +48,11 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
             add this mapping to the expandedMappingList
         */
 
+        log.debug("Start expansion for " + operation.operation + " ()")
+
         val involvedServices = ArrayList<String>()
         if (patternOperations.isNotEmpty()) {
+            log.debug("  There are already ${patternOperations.size} operations in the sequence.")
             //There are previous operations, do not check all other specs
             for (op in patternOperations) {
                 //Add all services which are already in the interaction sequence (if they are not already in the list)
@@ -75,75 +79,140 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
             }
         } else {
             //Add all services
+            log.debug("  There are no previous operations in the sequence")
             for (spec in openAPiSpecs) {
                 involvedServices.add(spec.info.title)
             }
         }
+        log.debug("  Start Expansion with ${involvedServices.size} involved service descriptions")
 
         for (spec in openAPiSpecs) {
             //Only analyze the specs of involved (previously called or linked) services
             if (involvedServices.contains(spec.info.title)) {
                 for (path in spec.paths.paths.keys) {
-
-                    log.debug("Match ${operation.operation} to $path ...")
+                    log.debug("    -----")
+                    log.debug("    Match ${operation.operation} to $path ...")
                     val patternOperation = matchController.matchPatternOperation(spec.paths.paths.getValue(path), operation, spec, path)
 
                     if (patternOperation != null) {
                         //matching was successful, create new GMapping with this extended pattern operation
-                        log.debug("Successfully matched ${operation.operation} to $path, check dependencies ...")
+                        log.debug("      Successfully matched ${operation.operation} to $path, check dependencies ...")
 
                         //Check dependencies for the matched operation
                         var resolved = true
 
-                        //Is there an input or a parameter in path?
-                        if (operation.input != null || (patternOperation.path.contains("{") && patternOperation.path.contains("}"))) {
-                            //There is some input which must be resolved
+                        //find path inputs
+                        val pathInputs = findPathInputs(patternOperation.path)
+                        log.debug("      Operation requires ${pathInputs.size} path inputs:")
+                        for (input in pathInputs) {
+                            log.debug("        - $input")
+                        }
+
+                        var bodyInputs = ArrayList<String>()
+                        if (AbstractPatternOperation.CREATE.name.equals(operation.operation)) {
+                            //a create might require some inputs in required body
+                            bodyInputs = findIdKeysInBody(patternOperation.requiredBody)
+                        }
+                        log.debug("      Operation requires ${bodyInputs.size} body inputs:")
+                        for (input in bodyInputs) {
+                            log.debug("        - $input")
+                        }
+
+                        //There are some inputs for the found operation
+                        if (pathInputs.size > 0 || bodyInputs.size > 0) {
+                            resolved = false
+                        }
+                        //There are some inputs defined in the abstract operation
+                        if (operation.input != null) {
                             resolved = false
                         }
 
-                        //Does the found operation require input(s)?
-                        if (operation.input != null) {
-                            //There is some input, resolve
-                            if (patternOperation.path.contains("{") && patternOperation.path.contains("}")) {
-                                //There is some input required in the path
-                                log.debug("operation requires a path input: ${operation.input}")
-                                //Find dependent operation
-                                val inputName = operation.input
-                                val dependentOperation = findDependentOperation(inputName)
-                                if (dependentOperation == null) {
-                                    log.debug("Found no output for input $inputName, skip here")
-                                    resolved = false
-                                } else {
-                                    //Inspect dependent operation and try to link to current one
+                        var abort = false
 
-                                    //same path prefix?
-                                    if (resolveSamePrefixLinks(dependentOperation, patternOperation)) {
-                                        resolved = true
-                                    }
-                                    else {
-                                        //not same domain, search for links
-                                        log.debug("not in the same domain, search for links...")
-                                        if (resolveManualLink(involvedServices, dependentOperation, patternOperation)) {
-                                            resolved = true
+                        //There are inputs defined but this operation does not require any
+                        if (operation.input != null && pathInputs.size + bodyInputs.size == 0) {
+                            abort = true
+                        }
+
+                        var numberOfRequiredAbstractInputs = 0
+                        if (operation.input != null) {
+                            numberOfRequiredAbstractInputs = operation.input.split(",").size
+                        }
+                        //Are there more required inputs than found ones?
+                        if (numberOfRequiredAbstractInputs > (pathInputs.size + bodyInputs.size)) {
+                            abort = true
+                        }
+
+
+                        //Start resolving inputs
+                        if (!resolved && !abort && operation.input != null) {
+                            //find dependent operations (abstract input name -> dependent operation)
+                            val dependentOperations = HashMap<String, PatternOperation>()
+                            for (abstractInput in operation.input.split(",")) {
+                                val op = findDependentOperation(abstractInput)
+                                if (op != null) {
+                                    dependentOperations[abstractInput] = op
+                                } else {
+                                    log.debug("      No dependent operation for $abstractInput")
+                                    abort = true
+                                }
+                            }
+
+                            //If all dependent operation have been found, resolve each input
+                            val resolvedAbstractInputNames = ArrayList<String>()
+                            if (!abort) {
+                                //Resolve path inputs
+                                for (pathInput in pathInputs) {
+                                    var pathInputResolved = false
+                                    for (dependency in dependentOperations.entries) {
+                                        if (isInputInDependentOperation(pathInput, involvedServices, dependency.value, patternOperation)) {
+                                            //this path input is resolved
+                                            log.debug("      Resolved path input $pathInput")
+                                            pathInputResolved = true
+                                            resolvedAbstractInputNames.add(dependency.key)
                                         }
                                     }
-                                }
-                            } else {
-                                //There is some input in the request body
-                                log.debug("operation requires a request body input: ${operation.input}")
-                                val inputName = operation.input
-                                val dependentOperation = findDependentOperation(inputName)
-                                if (dependentOperation == null) {
-                                    log.debug("Found no output for input $inputName, skip here")
-                                    resolved = false
-                                } else {
-                                    if (resolveManualLink(involvedServices, dependentOperation, patternOperation)) {
-                                        log.debug("RESOLVED!")
-                                        resolved = true
+                                    if (!pathInputResolved) {
+                                        //at least one path input was not resolved
+                                        log.debug("      Unable to resolve all path inputs")
+                                        abort = true
                                     }
-
                                 }
+                            }
 
+                            if (!abort) {
+                                //Resolve Body inputs
+                                for (bodyInput in bodyInputs) {
+                                    var bodyinputResolved = false
+                                    for (dependency in dependentOperations.entries) {
+                                        if (isInputInDependentOperation(bodyInput, involvedServices, dependency.value, patternOperation)) {
+                                            //this path input is resolved
+                                            log.debug("      Resolved body input $bodyInput")
+                                            bodyinputResolved = true
+                                            resolvedAbstractInputNames.add(dependency.key)
+                                        }
+                                    }
+                                    if (!bodyinputResolved) {
+                                        //at least one path input was not resolved
+                                        log.debug("      Unable to resolve all body inputs")
+                                        abort = true
+                                    }
+                                }
+                            }
+
+                            //All inputs resolved?
+                            if (!abort) {
+                                resolved = true
+                                log.debug("      All inputs were resolved")
+                            }
+                            //All abstract input values resolved?
+                            val numberOfResolvedAbstractNames = resolvedAbstractInputNames.distinct().size
+                            if (numberOfResolvedAbstractNames != numberOfRequiredAbstractInputs) {
+                                log.debug("      Not all abstract inputs were resolved")
+                                for (r in resolvedAbstractInputNames.distinct()) {
+                                    log.debug("        $r was resolved")
+                                }
+                                resolved = false
                             }
 
                         }
@@ -156,9 +225,13 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
                             newMapping.patternOperations = this.patternOperations.clone() as ArrayList<PatternOperation>
                             //Add new found operation to deep copy
                             newMapping.patternOperations.add(patternOperation)
-
                             expandedMappings.add(newMapping)
+                            log.debug("    MATCH!")
+                        } else {
+                            log.debug("    no Match (dependency failure)")
                         }
+                    } else {
+                        log.debug("    no Match (abstract operation)")
                     }
                 }
             }
@@ -182,6 +255,56 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
         return false
     }
 
+    private fun findPathInputs(path : String) : ArrayList<String> {
+        val inputs = ArrayList<String>()
+        var pos = 0
+        while (pos >= 0) {
+            pos = path.indexOf("{", pos+1)
+            if (pos >= 0) {
+                //there is some path input
+                val endpos = path.indexOf("}", pos)
+                val inputname = path.substring(pos+1, endpos)
+                inputs.add(inputname)
+            }
+        }
+        return inputs
+    }
+
+    private fun findIdKeysInBody(json : JsonObject) : ArrayList<String> {
+        val keys = ArrayList<String>()
+        for (prop in json.entrySet()) {
+            if (prop.key.endsWith("id", true)) {
+                var noEnum = true
+                //if it's an enum, then there are values defined
+                if (prop.value.isJsonObject && prop.value.asJsonObject.has("enum")) {
+                    noEnum = false
+                }
+                if (noEnum) {
+                    keys.add(prop.key)
+                }
+            }
+            if (prop.value.isJsonObject) {
+                keys.addAll(findIdKeysInBody(prop.value.asJsonObject))
+            }
+        }
+        return keys
+    }
+
+    private fun isInputInDependentOperation(inputName : String, involvedServices : ArrayList<String>, dependentOperation: PatternOperation, patternOperation: PatternOperation) : Boolean {
+        if (comparePathLevels(dependentOperation.path, patternOperation.path) > 0) {
+            //same domain, go on
+            log.debug("        same path prefix")
+            //Look for parameter name in output of dependent request
+            val output: JsonObject = dependentOperation.produces!!
+            val keyThere = lookForKey(inputName, output)
+            if (keyThere) {
+                log.debug("        key found, dependency resolved")
+                return true
+            }
+        }
+        return resolveManualLink(involvedServices, inputName, dependentOperation, patternOperation)
+    }
+
     private fun comparePathLevels(path1 : String, path2: String) : Int {
         var level = 0
 
@@ -191,7 +314,6 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
 
         //compare parts
         while (true) {
-            log.debug("IN LOOP for $tmp1 and $tmp2")
             val i1 = tmp1.indexOf('/',1)
             val i2 = tmp2.indexOf('/',1)
             var part1: String
@@ -237,37 +359,15 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
         for (i in patternOperations.size - 1 downTo 0) {
             if (dependentOperation == null && inputName == patternOperations[i].abstractOperation.output) {
                 dependentOperation = patternOperations[i]
-                log.debug("Found dependent operation: ${dependentOperation.abstractOperation.operation} to ${dependentOperation.path}")
+                log.debug("      Found dependent operation: ${dependentOperation.abstractOperation.operation} to ${dependentOperation.path}")
                 return dependentOperation
             }
         }
         return null
     }
 
-    private fun resolveSamePrefixLinks(dependentOperation: PatternOperation, patternOperation:PatternOperation) : Boolean {
-        if (comparePathLevels(dependentOperation.path, patternOperation.path) > 0) {
-            //same domain, go on
-            log.debug("same path prefix")
-            var requiredParameterName = ""
-            for (parameter in patternOperation.parameters) {
-                if (parameter.has("in")) {
-                    if (parameter.get("in").asString == "path") {
-                        requiredParameterName = parameter.get("name").asString
-                    }
-                }
-            }
-            //Look for parameter name in output of dependent request
-            val output: JsonObject = dependentOperation.produces!!
-            val keyThere = lookForKey(requiredParameterName, output)
-            if (keyThere) {
-                log.debug("key found, dependency resolved")
-                return true
-            }
-        }
-        return false
-    }
 
-    private fun resolveManualLink(involvedServices : ArrayList<String>, dependentOperation: PatternOperation, patternOperation: PatternOperation) : Boolean {
+    private fun resolveManualLink(involvedServices : ArrayList<String>, inputName:String, dependentOperation: PatternOperation, patternOperation: PatternOperation) : Boolean {
         var dependentPath: String? = null
         for (spec2 in openAPiSpecs) {
             if (involvedServices.contains(spec2.info.title)) {
@@ -283,25 +383,21 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
         if (dependentPath != null) {
             for (link in serviceLinks) {
                 if (dependentPath.startsWith(link.prefix1) && trimPath(patternOperation.path).startsWith(link.prefix2)) {
-                    //found link, try to match patameters
+                    //found link, try to match parameters
 
                     var linkFound = false
-                    if (lookForKey(link.parameterName1, dependentOperation.produces!!)) {
-                        for (p in patternOperation.parameters) {
-                            if (p.has("name") && p.get("name").asString == link.parameterName2) {
-                                //Found link in parameter
-                                log.debug("Found link in parameter")
-                                linkFound = true
-                            }
-                        }
-                        if (lookForKey(link.parameterName2, patternOperation.requiredBody)) {
-                            //Found link in required body
-                            log.debug("Found link in required body")
+                    if (inputName == link.parameterName2 && lookForKey(link.parameterName1, dependentOperation.produces!!)) {
+                            log.debug("        Found link in produced object")
+                            linkFound = true
+                    }
+                    for (p in dependentOperation.parameters) {
+                        if (inputName == link.parameterName2 && lookForKey(link.parameterName1, p)) {
+                            log.debug("        Found link in parameter of dependent request")
                             linkFound = true
                         }
                     }
                     if (linkFound) {
-                        log.debug("Found link between " + link.prefix1 + " and " + patternOperation.path)
+                        log.debug("        Found link between " + link.prefix1 + " and " + patternOperation.path)
                         return true
                     }
                 }

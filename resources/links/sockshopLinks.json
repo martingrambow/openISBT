@@ -23,6 +23,18 @@
     "parameterName1": "id",
     "prefix2": "/addresses",
     "parameterName2": "userID"
+  },
+  {
+    "prefix1": "/register",
+    "parameterName1": "id",
+    "prefix2": "/carts",
+    "parameterName2": "customerId"
+  },
+  {
+    "prefix1": "/catalogue",
+    "parameterName1": "id",
+    "prefix2": "/carts",
+    "parameterName2": "itemId"
   }
 
 ]
