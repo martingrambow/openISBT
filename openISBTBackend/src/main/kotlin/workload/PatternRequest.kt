@@ -9,24 +9,15 @@ import patternconfiguration.AbstractPatternOperation
 
 val log = LoggerFactory.getLogger("PatternRequest")!!
 
-class PatternRequest(var id: Int, var resource: String, var abstractPattern: AbstractPattern) {
+class PatternRequest(var id: Int, var abstractPattern: AbstractPattern) {
 
     var apiRequests : Array<ApiRequest> = arrayOf()
 
-    suspend fun generateApiRequests(operationSequence: List<List<PatternOperation>>) {
+    suspend fun generateApiRequests(operationSequence: List<PatternOperation>) {
 
         val requestList = ArrayList<ApiRequest>()
 
-        for (operationList in operationSequence) {
-            //pick one of the possible operations (e.g., getUserByID or getUserByName)
-            var idx = (0 until operationList.size).shuffled().first()
-            var operation = operationList[idx]
-            //pick next operation if all required requests are already generated
-            while (operation.requests <= 0) {
-                idx = (0 until operationList.size).shuffled().first()
-                operation = operationList[idx]
-            }
-
+        for (operation in operationSequence) {
             log.debug("Generate request for operation " + operation.abstractOperation.operation + " (" + operation.path +")...")
 
             val req = ApiRequest()

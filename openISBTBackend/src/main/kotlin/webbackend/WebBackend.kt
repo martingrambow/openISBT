@@ -16,6 +16,8 @@ import io.ktor.server.netty.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import mapping.IMapper
+import mapping.globalmapping.GMapper
+import mapping.globalmapping.GPatternBinding
 import mapping.simplemapping.Mapper
 import mapping.simplemapping.ResourceMapping
 import measurement.PatternMeasurement
@@ -36,7 +38,7 @@ val workerhandler = Workerhandler()
 
 val oasFiles:MutableMap<Int, String> = HashMap()
 val patternConfigs:MutableMap<Int, String> = HashMap()
-val resourceMappings:MutableMap<Int, ArrayList<ResourceMapping>> = HashMap()
+val resourceMappings:MutableMap<Int, ArrayList<GPatternBinding>> = HashMap()
 val workloads:MutableMap<Int, Array<PatternRequest>> = HashMap()
 val progressListener:MutableMap<Int, BackendProgressListener> = HashMap()
 val workerSets: MutableMap<Int,MutableMap<Int,Worker>> = HashMap()
@@ -113,7 +115,7 @@ fun Application.module() {
             val config:PatternConfiguration? = loadPatternConfig(patternConfigFile)
 
             if (spec != null && config != null) {
-                val mapper:Mapper = Mapper()
+                val mapper:GMapper = GMapper()
                 mapper.addOpenAPISpec(spec)
                 mapper.setPatternConfiguration(config)
                 mapper.mapPattern(emptyArray())
@@ -127,7 +129,7 @@ fun Application.module() {
                     found = resourceMappings[id] != null
                 } while (found)
 
-                resourceMappings[id] = mapper.resourceMappings
+                //resourceMappings[id] = mapper.resourceMappings
 
                 call.response.header("Access-Control-Allow-Origin", "*")
                 call.respondText("Mapping is stored with key $id", ContentType.Application.Any)
@@ -158,14 +160,14 @@ fun Application.module() {
 
             val mappingList = resourceMappings[mappingID]
             if (mappingList != null && config != null) {
-                for (mapping in mappingList) {
-                    if (mapping.resourcePath == path && mapping.supported) {
-                        mapping.enabled = enabled
+                for (binding in mappingList) {
+                    if (binding.supported) {
+                        //binding.enabled = enabled
                     }
                 }
                 val mapper = Mapper()
                 mapper.setPatternConfiguration(config)
-                mapper.resourceMappings = resourceMappings.getValue(mappingID)
+                //mapper.resourceMappings = resourceMappings.getValue(mappingID)
                 mapper.calculateRequests()
             }
 
@@ -175,7 +177,7 @@ fun Application.module() {
 
         get ("/api/workload/generate/{id}") {
             val mappingID = Integer.parseInt(call.parameters["id"])
-            val mapping: ArrayList<ResourceMapping>? = resourceMappings[mappingID]
+            val mapping: ArrayList<GPatternBinding>? = resourceMappings[mappingID]
             val answer: String
             if (mapping == null) {
                 answer = "not found"

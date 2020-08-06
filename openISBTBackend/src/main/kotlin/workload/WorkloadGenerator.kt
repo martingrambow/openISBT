@@ -1,7 +1,7 @@
 package workload
 
 import kotlinx.coroutines.runBlocking
-import mapping.simplemapping.ResourceMapping
+import mapping.globalmapping.GPatternBinding
 import org.slf4j.LoggerFactory
 
 class WorkloadGenerator {
@@ -11,32 +11,36 @@ class WorkloadGenerator {
     private var workload = ArrayList<PatternRequest>()
     private val log = LoggerFactory.getLogger("WorkloadGenerator")
 
-    fun generateWorkload(resourceMappings : Array<ResourceMapping>) {
+    fun generateWorkload(bindings : Array<GPatternBinding>) {
         patternRequests.clear()
 
         var total = 0
         //determine number of total patternRequests items
-        for (topLevelMapping in resourceMappings) {
-            if (topLevelMapping.supported && topLevelMapping.enabled) {
-                for (patternMapping in topLevelMapping.patternMappingList) {
-                    total += patternMapping.requests
+        for (binding in bindings) {
+            if (binding.supported) {
+                for (mapping in binding.gMappingList) {
+                    if (mapping.enabled) {
+                        total += mapping.numberOfRequests
+                    }
                 }
             }
         }
         log.info("Generate workload ($total pattern requests)...")
 
-        for (topLevelMapping in resourceMappings) {
-            if (topLevelMapping.supported && topLevelMapping.enabled) {
-                for (patternMapping in topLevelMapping.patternMappingList) {
-                    for (i in 1 .. patternMapping.requests) {
-                        runBlocking {
-                            val id = getNextID((total * 1.2).toInt())
-                            val req = PatternRequest(id, topLevelMapping.resourcePath, patternMapping.aPattern)
-                            req.generateApiRequests(patternMapping.operationSequence)
-                            patternRequests[id] = req
-                            val current = patternRequests.size
-                            if (listener != null) {
-                                listener?.setProgress((current * 100) / total)
+        for (binding in bindings) {
+            if (binding.supported ) {
+                for (mapping in binding.gMappingList) {
+                    if (mapping.enabled) {
+                        for (i in 1..mapping.numberOfRequests) {
+                            runBlocking {
+                                val id = getNextID((total * 1.2).toInt())
+                                val req = PatternRequest(id, binding.abstractPattern)
+                                req.generateApiRequests(mapping.patternOperations)
+                                patternRequests[id] = req
+                                val current = patternRequests.size
+                                if (listener != null) {
+                                    listener?.setProgress((current * 100) / total)
+                                }
                             }
                         }
                     }

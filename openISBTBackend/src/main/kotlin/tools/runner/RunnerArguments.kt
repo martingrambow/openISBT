@@ -39,8 +39,4 @@ class RunnerArguments(parser: ArgParser) {
                     throw InvalidArgumentException(this.value.absolutePath + " does not exist.")
                 }
             }
-
-    val endpoint by parser.storing(
-            "-e", "--endpoint",
-            help = "endpoint url")
 }

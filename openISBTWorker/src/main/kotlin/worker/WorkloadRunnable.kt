@@ -1,3 +1,5 @@
+package worker
+
 import com.google.gson.GsonBuilder
 import io.ktor.client.HttpClient
 import io.ktor.client.request.*
@@ -28,7 +30,7 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
 
     override fun run() {
 
-        val measurement = PatternMeasurement(patternRequest.resource, patternRequest.abstractPattern.name, patternRequest.id, workerID)
+        val measurement = PatternMeasurement(patternRequest.abstractPattern.name, patternRequest.id, workerID)
         measurement.start = System.currentTimeMillis()
 
         log.debug("Running pattern " + patternRequest.abstractPattern.name + ": ID=" + patternRequest.id + ", " + patternRequest.apiRequests.size + " API requests")

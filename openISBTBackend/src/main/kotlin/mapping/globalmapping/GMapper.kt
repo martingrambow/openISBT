@@ -15,7 +15,7 @@ class GMapper:IMapper {
 
     val log: Logger = LoggerFactory.getLogger("GMapper")
 
-    private var gPatternMappings:ArrayList<GPatternMapping> = ArrayList()
+    private var gPatternMappings:ArrayList<GPatternBinding> = ArrayList()
 
     private var patternConfiguration: PatternConfiguration? = null
     private var serviceLinks:ArrayList<ServiceLinkObject>? = null
@@ -75,7 +75,7 @@ class GMapper:IMapper {
             }
             log.info("Found ${prevMappings.size} mappings for ${pattern.name}")
             //All possible Mappings for the current pattern are in prevMappings
-            gPatternMappings.add(GPatternMapping(pattern, prevMappings))
+            gPatternMappings.add(GPatternBinding(pattern, prevMappings))
         }
         return true
     }

@@ -16,7 +16,7 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
     //number of requests which should be sent according to this mapping
     var numberOfRequests:Int = 0
     //true, if the user wants to benchmark this mapping; (true per default, can be changed in GUI)
-    val enabled:Boolean = true
+    var enabled:Boolean = true
 
     @Transient
     val log = LoggerFactory.getLogger("GMapping")!!

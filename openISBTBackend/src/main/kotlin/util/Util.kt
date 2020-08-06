@@ -6,6 +6,7 @@ import com.google.gson.JsonDeserializer
 import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
 import de.tuberlin.mcc.openapispecification.PathsObject
 import de.tuberlin.mcc.patternconfiguration.PatternConfiguration
+import mapping.globalmapping.GPatternBinding
 import mapping.simplemapping.ResourceMapping
 import matching.link.ServiceLinkObject
 import measurement.PatternMeasurement
@@ -45,9 +46,9 @@ fun loadOAS(oasFile:String): OpenAPISPecifcation? {
     return null
 }
 
-fun loadMapping(mappingFile: String): Array<ResourceMapping>? {
+fun loadMapping(mappingFile: String): Array<GPatternBinding>? {
     val customGson:Gson = GsonBuilder().create()
-    return customGson.fromJson(mappingFile, Array<ResourceMapping>::class.java)
+    return customGson.fromJson(mappingFile, Array<GPatternBinding>::class.java)
 }
 
 fun loadPatternConfig(patternConfigFile: String): PatternConfiguration? {

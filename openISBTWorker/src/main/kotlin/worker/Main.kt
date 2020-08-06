@@ -1,3 +1,5 @@
+package worker
+
 import com.google.gson.GsonBuilder
 import io.ktor.application.call
 import io.ktor.http.ContentType
