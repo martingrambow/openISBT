@@ -122,7 +122,8 @@ class GMapper:IMapper {
     override fun printSupportInfo() {
         log.info("Supported resource mappings:")
         for (rmapping in gPatternMappings) {
-            log.info("Resource Mapping for pattern ${rmapping.abstractPattern.name} (supported=${rmapping.supported}, requests=${rmapping.requests}):")
+            log.info("------------------------------------------------")
+            log.info("Resource Mapping for pattern ${rmapping.abstractPattern.name} (supported=${rmapping.supported}, requests=${rmapping.requests}, interactions=${rmapping.gMappingList.size}):")
             for (m in rmapping.gMappingList) {
                 log.info("  New Interaction Sequence:")
                 for (op in m.patternOperations) {

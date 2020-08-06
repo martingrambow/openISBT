@@ -51,44 +51,12 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
         log.debug("Start expansion for " + operation.operation + " ()")
 
         val involvedServices = ArrayList<String>()
-        if (patternOperations.isNotEmpty()) {
-            log.debug("  There are already ${patternOperations.size} operations in the sequence.")
-            //There are previous operations, do not check all other specs
-            for (op in patternOperations) {
-                //Add all services which are already in the interaction sequence (if they are not already in the list)
-                if (!involvedServices.contains(op.serviceName)) {
-                    involvedServices.add(op.serviceName)
-                }
-                //Add service links to other services
-                for (link in serviceLinks) {
-                    if (trimPath(op.path).startsWith(link.prefix1)) {
-                        //link.prefix2 is related
-                        for (spec in openAPiSpecs) {
-                            for (pathitem in spec.paths.paths) {
-                                if (pathitem.key.startsWith(link.prefix2)) {
-                                    //found link
-                                    if (!involvedServices.contains(spec.info.title)) {
-                                        involvedServices.add(spec.info.title)
-                                    }
-                                }
-
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
-            //Add all services
-            log.debug("  There are no previous operations in the sequence")
-            for (spec in openAPiSpecs) {
-                involvedServices.add(spec.info.title)
-            }
+        for (spec in openAPiSpecs) {
+            involvedServices.add(spec.info.title)
         }
         log.debug("  Start Expansion with ${involvedServices.size} involved service descriptions")
 
         for (spec in openAPiSpecs) {
-            //Only analyze the specs of involved (previously called or linked) services
-            if (involvedServices.contains(spec.info.title)) {
                 for (path in spec.paths.paths.keys) {
                     log.debug("    -----")
                     log.debug("    Match ${operation.operation} to $path ...")
@@ -109,7 +77,11 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
                         }
 
                         var bodyInputs = ArrayList<String>()
-                        if (AbstractPatternOperation.CREATE.name.equals(operation.operation)) {
+                        val bodyOperationNames = ArrayList<String>()
+                        bodyOperationNames.add(AbstractPatternOperation.CREATE.name)
+                        bodyOperationNames.add(AbstractPatternOperation.UPDATE.name)
+                        bodyOperationNames.add(AbstractPatternOperation.PATCH.name)
+                        if (bodyOperationNames.contains(operation.operation)) {
                             //a create might require some inputs in required body
                             bodyInputs = findIdKeysInBody(patternOperation.requiredBody)
                         }
@@ -234,7 +206,6 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
                         log.debug("    no Match (abstract operation)")
                     }
                 }
-            }
         }
 
         return expandedMappings
