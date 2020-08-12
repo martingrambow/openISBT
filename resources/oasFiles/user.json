@@ -87,7 +87,8 @@
             "required": true,
             "schema": {
               "type": "string",
-              "default": "57a98d98e4b00679b4a830af"
+              "default": "57a98d98e4b00679b4a830af",
+              "faker": "random.uuid"
             }
           }
         ],
@@ -115,7 +116,8 @@
             "required": true,
             "schema": {
               "type": "string",
-              "default": "57a98d98e4b00679b4a830b5"
+              "default": "57a98d98e4b00679b4a830b5",
+              "faker": "random.uuid"
             }
           }
         ],
@@ -145,7 +147,8 @@
             "required": true,
             "schema": {
               "type": "string",
-              "default": "57a98d98e4b00679b4a830af"
+              "default": "57a98d98e4b00679b4a830af",
+              "faker": "random.uuid"
             }
           }
         ],
@@ -175,7 +178,8 @@
             "required": true,
             "schema": {
               "type": "string",
-              "default": "57a98d98e4b00679b4a830af"
+              "default": "57a98d98e4b00679b4a830af",
+              "faker": "random.uuid"
             }
           }
         ],
@@ -250,7 +254,8 @@
             "required": true,
             "schema": {
               "type": "string",
-              "default": "57a98d98e4b00679b4a830ae"
+              "default": "57a98d98e4b00679b4a830ae",
+              "faker": "random.uuid"
             }
           }
         ],
@@ -278,7 +283,8 @@
             "required": true,
             "schema": {
               "type": "string",
-              "default": "57a98d98e4b00679b4a830ae"
+              "default": "57a98d98e4b00679b4a830ae",
+              "faker": "random.uuid"
             }
           }
         ],
@@ -353,7 +359,8 @@
             "required": true,
             "schema": {
               "type": "string",
-              "default": "57a98d98e4b00679b4a830ad"
+              "default": "57a98d98e4b00679b4a830ad",
+              "faker": "random.uuid"
             }
           }
         ],
@@ -381,7 +388,8 @@
             "required": true,
             "schema": {
               "type": "string",
-              "default": "57a98d98e4b00679b4a830ad"
+              "default": "57a98d98e4b00679b4a830ad",
+              "faker": "random.uuid"
             }
           }
         ],
@@ -402,7 +410,7 @@
   },
   "servers": [
     {
-      "url": "http://ec2-1pudding.com:9006"
+      "url": "http://ec2-3-120-32-125.eu-central-1.compute.amazonaws.com:9006"
     }
   ],
   "components": {
@@ -714,28 +722,36 @@
         "properties": {
           "username": {
             "description": "Username",
-            "type": "string"
+            "type": "string",
+            "faker": "internet.userName"
           },
           "password": {
             "description": "Password",
-            "type": "string"
+            "type": "string",
+            "faker": "internet.password"
           },
           "firstName": {
             "description": "First name",
-            "type": "string"
+            "type": "string",
+            "faker": "name.firstName"
           },
           "lastName": {
             "description": "Last name",
-            "type": "string"
+            "type": "string",
+            "faker": "name.lastName"
           },
           "email": {
             "description": "Email",
-            "type": "string"
+            "type": "string",
+            "faker": "internet.email"
           }
         },
         "required": [
           "username",
-          "password"
+          "password",
+          "firstName",
+          "lastName",
+          "email"
         ]
       },
       "Postcard": {
@@ -744,46 +760,71 @@
         "properties": {
           "longNum": {
             "description": "Credit card number",
-            "type": "string"
+            "type": "string",
+            "faker": "finance.iban"
           },
           "expires": {
             "description": "Card expiration",
-            "type": "string"
+            "type": "string",
+            "faker": "date.future"
           },
           "ccv": {
             "description": "Card ccv",
-            "type": "string"
+            "type": "string",
+            "faker": "random.number"
           },
           "userID": {
             "description": "User to attach this card to.",
-            "type": "string"
+            "type": "string",
+            "faker": "random.uuid"
           }
-        }
+        },
+        "required": [
+          "longNum",
+          "expires",
+          "ccv",
+          "userID"
+        ]
       },
       "Postaddress": {
         "title": "Post Address",
         "type": "object",
         "properties": {
           "street": {
-            "type": "string"
+            "type": "string",
+            "faker": "address.streetName"
           },
           "number": {
-            "type": "string"
+            "type": "string",
+            "faker": "address.streetAddress"
           },
           "country": {
-            "type": "string"
+            "type": "string",
+            "faker": "address.country"
           },
           "city": {
-            "type": "string"
+            "type": "string",
+            "faker": "address.city"
           },
           "postcode": {
-            "type": "string"
+            "type": "string",
+            "faker": "address.zipCode"
           },
           "userID": {
             "description": "User to attach this card to.",
-            "type": "string"
+            "type": "string",
+            "faker": "random.uuid"
           }
         }
+      ,
+        "required": [
+          "street",
+          "number",
+          "country",
+          "city",
+          "postcode",
+          "userID"
+        ]
       }
     }
   }

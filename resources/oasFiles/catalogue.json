@@ -42,7 +42,8 @@
             "required": true,
             "example": "a0a4f044-b040-410d-8ead-4de0446aec7e",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "faker": "random.uuid"
             }
           }
         ],
@@ -99,7 +100,7 @@
   },
   "servers": [
     {
-      "url": "http://ec2-1pudding.com:9003"
+      "url": "http://ec2-3-120-32-125.eu-central-1.compute.amazonaws.com:9003"
     }
   ],
   "components": {

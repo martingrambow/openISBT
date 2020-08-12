@@ -1,5 +1,5 @@
 {
-  "totalPatternRequests": 100,
+  "totalPatternRequests": 20,
   "patterns": [
     {
       "name": "LST",
@@ -16,10 +16,10 @@
           "wait": 5
         }
       ],
-      "weight": 65
+      "weight": 20
     },
     {
-      "name": "UPD",
+      "name": "DEL",
       "sequence": [
         {
           "operation": "SCAN",
@@ -34,60 +34,52 @@
           "wait": 5
         },
         {
-          "operation": "UPDATE",
+          "operation": "DELETE",
           "input": "item",
           "wait": 5
         }
       ],
       "weight": 20
     },
-
     {
-      "name": "SUB",
+      "name": "SUBLST",
       "sequence": [
         {
           "operation": "SCAN",
-          "output": "list",
+          "output": "resourceList",
           "wait": 15
-        },
-        {
-          "operation": "CREATE",
-          "input": "list",
-          "selector": "RANDOM",
-          "output": "item",
-          "wait": 5
         },
         {
           "operation": "SCAN",
-          "input": "list",
-          "selector": "RANDOMREF(0)",
-          "wait": 15
+          "input": "resourceList",
+          "selector": "RANDOM",
+          "output": "sublist",
+          "wait": 5
         }
       ],
-      "weight": 10
+      "weight": 20
     },
     {
-      "name": "COMB",
+      "name": "TWOIN",
       "sequence": [
         {
           "operation": "SCAN",
-          "output": "list",
+          "output": "firstList",
           "wait": 15
         },
         {
           "operation": "SCAN",
-          "output": "list2",
-          "wait": 15
+          "output": "secList",
+          "wait": 5
         },
         {
           "operation": "CREATE",
-          "input": "list, list2",
-          "selector": "RANDOM, RANDOM",
-          "output": "item",
-          "wait": 5
+          "input": "firstList,secList",
+          "selector": "RANDOM",
+          "wait": 15
         }
       ],
-      "weight": 5
+      "weight": 20
     }],
   "manualDecision": true
 }

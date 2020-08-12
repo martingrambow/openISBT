@@ -21,7 +21,8 @@
             "required": true,
             "example": "1",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "faker": "random.uuid"
             }
           }
         ],
@@ -48,7 +49,8 @@
             "required": true,
             "example": "1",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "faker": "random.uuid"
             }
           }
         ],
@@ -60,6 +62,37 @@
       }
     },
     "/carts/{customerId}/items": {
+      "get": {
+        "description": "",
+        "operationId": "Get items",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "example": "1",
+            "schema": {
+              "type": "string",
+              "faker": "random.uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns items",
+            "content": {
+              "application/json;charset=UTF-8": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CartItem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "description": "",
         "operationId": "Add an item to the cart",
@@ -70,7 +103,8 @@
             "required": true,
             "example": "579f21ae98684924944651bf",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "faker": "random.uuid"
             }
           }
         ],
@@ -112,7 +146,8 @@
             "required": true,
             "example": "579f21ae98684924944651bf",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "faker": "random.uuid"
             }
           }
         ],
@@ -120,12 +155,12 @@
           "content": {
             "application/json;charset=UTF-8": {
               "schema": {
-                "type": "object"
+                "$ref": "#/components/schemas/CartItem"
               }
             },
             "text/plain": {
               "schema": {
-                "type": "object"
+                "$ref": "#/components/schemas/CartItem"
               }
             }
           },
@@ -149,7 +184,8 @@
             "required": true,
             "example": "819e1fbf-8b7e-4f6d-811f-693534916a8b",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "faker": "random.uuid"
             }
           },
           {
@@ -158,7 +194,8 @@
             "required": true,
             "example": "579f21ae98684924944651bf",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "faker": "random.uuid"
             }
           }
         ],
@@ -172,7 +209,7 @@
   },
   "servers": [
     {
-      "url": "http://ec2-1pudding.com:9002"
+      "url": "http://ec2-3-120-32-125.eu-central-1.compute.amazonaws.com:9002"
     }
   ],
   "components": {
@@ -197,10 +234,14 @@
             "type": "string"
           },
           "quantity": {
-            "type": "integer"
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
           },
           "unitPrice": {
-            "type": "number"
+            "type": "number",
+            "minimum": 5,
+            "maximum": 20
           }
         },
         "required": [

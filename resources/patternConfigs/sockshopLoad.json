@@ -1,0 +1,37 @@
+{
+  "totalPatternRequests": 20,
+  "patterns": [
+    {
+      "name": "CRE1",
+      "sequence": [
+        {
+          "operation": "CREATE",
+          "output": "user",
+          "wait": 15
+        },
+        {
+          "operation": "CREATE",
+          "input": "user",
+          "wait": 5
+        },
+        {
+          "operation": "CREATE",
+          "input": "user",
+          "wait": 5
+        },
+        {
+          "operation": "SCAN",
+          "output": "catalogue",
+          "wait": 5
+        },
+        {
+          "operation": "CREATE",
+          "input": "user,catalogue",
+          "selector": "RANDOM",
+          "wait": 5
+        }
+      ],
+      "weight": 20
+    }],
+  "manualDecision": true
+}
