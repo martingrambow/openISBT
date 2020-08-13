@@ -1,6 +1,7 @@
 package mapping.simplemapping
 
 import com.google.gson.JsonObject
+import matching.link.ServiceLinkObject
 import patternconfiguration.AbstractOperation
 import patternconfiguration.AbstractPatternOperation
 //abstractOperation: name, input, output, selector, wait
@@ -12,5 +13,6 @@ class PatternOperation(var abstractOperation: AbstractOperation, var abstractPat
     var parameters:ArrayList<JsonObject> = ArrayList() //List of required parameters
     var headers:ArrayList<Pair<String, JsonObject>> = ArrayList() //List of headers
     var requiredBody:JsonObject = JsonObject() //Schema required in body
+    var links:ArrayList<ServiceLinkObject> = ArrayList()
     var produces:JsonObject? = JsonObject() //Values which are produced by this operation
 }

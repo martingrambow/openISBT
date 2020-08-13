@@ -49,7 +49,7 @@ class PatternRequest(var id: Int, var abstractPattern: AbstractPattern) {
                 var value:String = SchemaFaker.fakeSchema(schema)
                 log.trace("Faked schema: $value")
                 if (value.startsWith("[")) {
-                    log.warn("VALUE ARRAY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                    log.warn("!!!VALUE ARRAY!!!")
                     value = value.substring(2, value.length-2)
                     log.debug("Minimized: $value")
                     var tmp = ""
@@ -86,6 +86,14 @@ class PatternRequest(var id: Int, var abstractPattern: AbstractPattern) {
             val v = SchemaFaker.fakeSchema(body)
             log.debug("Added body: $v")
             req.body = JsonParser().parse(v)
+
+            //fill links
+            if (operation.links.isNotEmpty()) {
+                for (link in operation.links) {
+                    req.links.add(link)
+                }
+            }
+
             requestList.add(req)
             operation.requests--
         }

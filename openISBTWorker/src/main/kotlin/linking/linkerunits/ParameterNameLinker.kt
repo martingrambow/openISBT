@@ -1,7 +1,5 @@
 package linking.linkerunits
 
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonObject
 import linking.Linker
 import linking.LinkerUtil
 import org.slf4j.LoggerFactory
@@ -10,63 +8,31 @@ import workload.ApiRequest
 
 class ParameterNameLinker : Linker {
 
-    val log = LoggerFactory.getLogger("ParameterNameLinker")
+    private val log = LoggerFactory.getLogger("ParameterNameLinker")
 
-    override fun link(dependingRequest: ApiRequest, currentReqest: ApiRequest, abstractOperation: AbstractOperation): ApiRequest? {
+    override fun linkParameter(dependingRequest: ApiRequest, currentReqest: ApiRequest, inputNameInCurrentRequest: String, abstractOperation: AbstractOperation): ApiRequest? {
         //Fill current parameters with values from depending request
-        var changed : Boolean = false;
-        for (j in 0..currentReqest.parameter.size - 1) {
-            var p = currentReqest.parameter[j]
-            var dependentText = GsonBuilder().create().toJson(dependingRequest)
-            if (dependentText.length > 200) {
-                dependentText = dependentText.substring(0,199)
-            }
-            log.debug("Try to fill " + p.first + "(" + p.second + ") with infos from " + dependentText + " ...")
-            var filledValue = ""
-
-            if (dependingRequest.response != null) {
-                var responseText = dependingRequest.response
-                if (responseText.contains(p.first)) {
-                    log.debug("Found " + p.first + " in previous response text, create JSON elemnt ... ")
-                    var responseJson = GsonBuilder().create().fromJson(responseText, JsonObject::class.java)
-                    var value = LinkerUtil().getJSonValueForKey(p.first, responseJson, abstractOperation.selector)
-                    if (value != null) {
-                        filledValue = value.asString
-                        log.debug("Found " + p.first + " in previous response text and filled with " + filledValue)
-                    } else {
-                        log.warn("Found " + p.first + " in previous response text but value was null")
-                    }
+        for (j in 0 until currentReqest.parameter.size) {
+            val p = currentReqest.parameter[j]
+            if (p.first == inputNameInCurrentRequest) {
+                val newValue = LinkerUtil().getValueForKeyInRequest(p.first, dependingRequest, abstractOperation.selector)
+                if (newValue != null) {
+                    currentReqest.parameter[j] = Pair(p.first, newValue)
+                    log.debug("Found ${p.first} in dependent request, filled with $newValue")
+                    return currentReqest
                 }
-            }
-
-            if (filledValue == "") {
-                //Nothing found in previous response, now looking into previous request body
-                if (dependingRequest.body != null) {
-                    var bodyJsonElement = dependingRequest.body
-                    var value = LinkerUtil().getJSonValueForKey(p.first, bodyJsonElement, abstractOperation.selector)
-                    if (value != null) {
-                        filledValue = value.asString
-                        log.debug("Found " + p.first + " in previous request body and filled with " + filledValue)
-                    }
-                }
-            }
-
-            if (filledValue != "") {
-                log.debug("Linked Parameter detected!")
-                currentReqest.parameter[j] = Pair(p.first, filledValue)
-                changed = true
-
-                //Perhaps there are still some values to adjust in the request body
-                currentReqest.body = LinkerUtil().replaceValueInJson(p.first, filledValue, currentReqest.body)
-
-            } else {
-                log.debug("Unable to fill " + p.first + "(" + p.second + ") with infos from previous request")
             }
         }
-        if (changed) {
+        return null
+    }
+
+    override fun linkBody(dependingRequest: ApiRequest, currentReqest: ApiRequest, inputNameInCurrentRequest: String, abstractOperation: AbstractOperation): ApiRequest? {
+        val newValue = LinkerUtil().getValueForKeyInRequest(inputNameInCurrentRequest, dependingRequest, abstractOperation.selector)
+        if (newValue != null) {
+            currentReqest.body = LinkerUtil().replaceValueInJson(inputNameInCurrentRequest, newValue, currentReqest.body)
+            log.debug("Found $inputNameInCurrentRequest in dependent request, filled with $newValue")
             return currentReqest
-        } else {
-            return null
         }
+        return null
     }
 }

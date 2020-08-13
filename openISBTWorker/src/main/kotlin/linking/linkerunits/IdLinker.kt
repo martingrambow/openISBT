@@ -1,8 +1,5 @@
 package linking.linkerunits
 
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonElement
-import com.google.gson.JsonObject
 import linking.Linker
 import linking.LinkerUtil
 import org.slf4j.LoggerFactory
@@ -13,74 +10,60 @@ class IdLinker : Linker {
 
     val log = LoggerFactory.getLogger("IDLinker")
 
-    override fun link(dependingRequest: ApiRequest, currentReqest: ApiRequest, abstractOperation: AbstractOperation): ApiRequest? {
+    override fun linkParameter(dependingRequest: ApiRequest, currentReqest: ApiRequest, inputNameInCurrentRequest: String, abstractOperation: AbstractOperation): ApiRequest? {
         //Fill current parameters with values from depending request
-        var changed : Boolean = false;
-        for (j in 0..currentReqest.parameter.size - 1) {
-            var p = currentReqest.parameter[j]
-            if (p.first.toLowerCase().contains("id")) {
-                var dependentText = GsonBuilder().create().toJson(dependingRequest)
-                if (dependentText.length > 200) {
-                    dependentText = dependentText.substring(0,199)
-                }
-                log.debug("Try to fill " + p.first + "(" + p.second + ") with infos from " + dependentText + " ...")
-                var filledValue = ""
 
-                if (dependingRequest.response != null) {
-                    var responseText = dependingRequest.response
-                    if (responseText.toLowerCase().contains("id")) {
-                        log.debug("Found some id in previous response text, create JSON elemnt ... ")
+        //find id keys
+        val keys = ArrayList<String>()
+        for (pathIn in LinkerUtil().findPathInputs(dependingRequest.path)) {
+            if (pathIn.endsWith("id", true)) {
+                keys.add(pathIn)
+            }
+        }
+        if (dependingRequest.body.isJsonObject) {
+            keys.addAll(LinkerUtil().findIdKeysInJson(dependingRequest.body.asJsonObject))
+        }
 
-                        var responseJson = GsonBuilder().create().fromJson(responseText, JsonElement::class.java)
-                        var value = LinkerUtil().getJSonValueForKey("id", responseJson, abstractOperation.selector)
-                        if (value == null) {
-                            value = LinkerUtil().getJSonValueForKey("ID", responseJson, abstractOperation.selector)
-                        }
-                        if (value == null) {
-                            value = LinkerUtil().getJSonValueForKey("Id", responseJson, abstractOperation.selector)
-                        }
-                        if (value != null) {
-                            filledValue = value.asString
-                            log.debug(p.first + " filled with " + filledValue)
-                        }
+        for (j in 0 until currentReqest.parameter.size) {
+            val p = currentReqest.parameter[j]
+            if (p.first == inputNameInCurrentRequest) {
+
+                if (keys.size == 1) {
+                    //resolvable id is unique
+                    val newValue = LinkerUtil().getValueForKeyInRequest(keys[0], dependingRequest, abstractOperation.selector)
+                    if (newValue != null) {
+                        currentReqest.parameter[j] = Pair(p.first, newValue)
+                        log.debug("Found ${keys[0]} in dependent request, filled ${p.first} with $newValue")
+                        return currentReqest
                     }
-                }
-
-                if (filledValue == "") {
-                    //Nothing found in previous response, now looking into previous request body
-                    if (dependingRequest.body != null) {
-                        var bodyJsonElement = dependingRequest.body
-                        var value = LinkerUtil().getJSonValueForKey("id", bodyJsonElement, abstractOperation.selector)
-                        if (value == null) {
-                            value = LinkerUtil().getJSonValueForKey("ID", bodyJsonElement, abstractOperation.selector)
-                        }
-                        if (value == null) {
-                            value = LinkerUtil().getJSonValueForKey("Id", bodyJsonElement, abstractOperation.selector)
-                        }
-                        if (value != null) {
-                            filledValue = value.asString
-                            log.debug(p.first + " filled with " + filledValue)
-                        }
-                        if (value != null) {
-                            log.debug("Found " + p.first + " in previous request body")
-                            filledValue = value.asString
-                            log.debug(p.first + " filled with " + filledValue)
-                        }
-                    }
-                }
-
-                if (filledValue != "") {
-                    log.debug("ID link detected!")
-                    currentReqest.parameter[j] = Pair(p.first, filledValue)
-                    changed = true
                 }
             }
         }
-        if (changed) {
-            return currentReqest
-        } else {
-            return null
-        }
+        return null
     }
 
+    override fun linkBody(dependingRequest: ApiRequest, currentReqest: ApiRequest, inputNameInCurrentRequest: String, abstractOperation: AbstractOperation): ApiRequest? {
+
+        //find id keys
+        val keys = ArrayList<String>()
+        for (pathIn in LinkerUtil().findPathInputs(dependingRequest.path)) {
+            if (pathIn.endsWith("id", true)) {
+                keys.add(pathIn)
+            }
+        }
+        if (dependingRequest.body.isJsonObject) {
+            keys.addAll(LinkerUtil().findIdKeysInJson(dependingRequest.body.asJsonObject))
+        }
+
+        if (keys.size == 1) {
+            //resolvable id is unique
+            val newValue = LinkerUtil().getValueForKeyInRequest(keys[0], dependingRequest, abstractOperation.selector)
+            if (newValue != null) {
+                currentReqest.body = LinkerUtil().replaceValueInJson(inputNameInCurrentRequest, newValue, currentReqest.body)
+                log.debug("Found $inputNameInCurrentRequest in dependent request, filled with $newValue")
+                return currentReqest
+            }
+        }
+        return null
+    }
 }

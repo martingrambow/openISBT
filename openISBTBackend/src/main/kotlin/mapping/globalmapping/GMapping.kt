@@ -83,7 +83,7 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
                         bodyOperationNames.add(AbstractPatternOperation.PATCH.name)
                         if (bodyOperationNames.contains(operation.operation)) {
                             //a create might require some inputs in required body
-                            bodyInputs = findIdKeysInBody(patternOperation.requiredBody)
+                            bodyInputs = findIdKeysInJson(patternOperation.requiredBody)
                         }
                         log.debug("      Operation requires ${bodyInputs.size} body inputs:")
                         for (input in bodyInputs) {
@@ -137,11 +137,21 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
                                 for (pathInput in pathInputs) {
                                     var pathInputResolved = false
                                     for (dependency in dependentOperations.entries) {
-                                        if (isInputInDependentOperation(pathInput, involvedServices, dependency.value, patternOperation)) {
+                                        if (isInputNameInDependentOperation(pathInput, involvedServices, dependency.value, patternOperation)) {
                                             //this path input is resolved
-                                            log.debug("      Resolved path input $pathInput")
+                                            log.debug("      Resolved path input $pathInput by name")
                                             pathInputResolved = true
                                             resolvedAbstractInputNames.add(dependency.key)
+                                        } else {
+                                            val link = resolveManualLink(involvedServices, pathInput, dependency.value, patternOperation)
+                                            if (link != null) {
+                                                //Found a manual links
+                                                log.debug("      Resolved path input $pathInput by custom link")
+                                                pathInputResolved = true
+                                                resolvedAbstractInputNames.add(dependency.key)
+                                                patternOperation.links.add(link)
+
+                                            }
                                         }
                                     }
                                     if (!pathInputResolved) {
@@ -157,11 +167,21 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
                                 for (bodyInput in bodyInputs) {
                                     var bodyinputResolved = false
                                     for (dependency in dependentOperations.entries) {
-                                        if (isInputInDependentOperation(bodyInput, involvedServices, dependency.value, patternOperation)) {
+                                        if (isInputNameInDependentOperation(bodyInput, involvedServices, dependency.value, patternOperation)) {
                                             //this path input is resolved
                                             log.debug("      Resolved body input $bodyInput")
                                             bodyinputResolved = true
                                             resolvedAbstractInputNames.add(dependency.key)
+                                        } else {
+                                            val link = resolveManualLink(involvedServices, bodyInput, dependency.value, patternOperation)
+                                            if (link != null) {
+                                                //Found a manual links
+                                                log.debug("      Resolved body input $bodyInput by custom link")
+                                                bodyinputResolved = true
+                                                resolvedAbstractInputNames.add(dependency.key)
+                                                patternOperation.links.add(link)
+
+                                            }
                                         }
                                     }
                                     if (!bodyinputResolved) {
@@ -241,7 +261,7 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
         return inputs
     }
 
-    private fun findIdKeysInBody(json : JsonObject) : ArrayList<String> {
+    private fun findIdKeysInJson(json : JsonObject) : ArrayList<String> {
         val keys = ArrayList<String>()
         for (prop in json.entrySet()) {
             if (prop.key.endsWith("id", true)) {
@@ -255,13 +275,13 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
                 }
             }
             if (prop.value.isJsonObject) {
-                keys.addAll(findIdKeysInBody(prop.value.asJsonObject))
+                keys.addAll(findIdKeysInJson(prop.value.asJsonObject))
             }
         }
         return keys
     }
 
-    private fun isInputInDependentOperation(inputName : String, involvedServices : ArrayList<String>, dependentOperation: PatternOperation, patternOperation: PatternOperation) : Boolean {
+    private fun isInputNameInDependentOperation(inputName : String, involvedServices : ArrayList<String>, dependentOperation: PatternOperation, patternOperation: PatternOperation) : Boolean {
         if (comparePathLevels(dependentOperation.path, patternOperation.path) > 0) {
             //same domain, go on
             log.debug("        same path prefix")
@@ -273,7 +293,7 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
                 return true
             }
         }
-        return resolveManualLink(involvedServices, inputName, dependentOperation, patternOperation)
+        return false
     }
 
     private fun comparePathLevels(path1 : String, path2: String) : Int {
@@ -338,7 +358,7 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
     }
 
 
-    private fun resolveManualLink(involvedServices : ArrayList<String>, inputName:String, dependentOperation: PatternOperation, patternOperation: PatternOperation) : Boolean {
+    private fun resolveManualLink(involvedServices : ArrayList<String>, inputName:String, dependentOperation: PatternOperation, patternOperation: PatternOperation) : ServiceLinkObject? {
         var dependentPath: String? = null
         for (spec2 in openAPiSpecs) {
             if (involvedServices.contains(spec2.info.title)) {
@@ -354,7 +374,7 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
         if (dependentPath != null) {
             for (link in serviceLinks) {
                 if (dependentPath.startsWith(link.prefix1) && trimPath(patternOperation.path).startsWith(link.prefix2)) {
-                    //found link, try to match parameters
+                    //found links, try to match parameters
 
                     var linkFound = false
                     if (inputName == link.parameterName2 && lookForKey(link.parameterName1, dependentOperation.produces!!)) {
@@ -369,12 +389,12 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
                     }
                     if (linkFound) {
                         log.debug("        Found link between " + link.prefix1 + " and " + patternOperation.path)
-                        return true
+                        return link
                     }
                 }
             }
         }
-        return false
+        return null
     }
 
 }

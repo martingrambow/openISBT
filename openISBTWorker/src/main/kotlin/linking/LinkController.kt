@@ -1,30 +1,43 @@
 package linking
 
+import linking.linkerunits.BindingLinker
 import linking.linkerunits.IdLinker
 import linking.linkerunits.ParameterNameLinker
 import org.slf4j.LoggerFactory
 import workload.AbstractOperation
 import workload.ApiRequest
 
-open class LinkController {
+open class LinkController() {
 
     var linkerList:ArrayList<Linker> = ArrayList()
     val log = LoggerFactory.getLogger("LinkController")
 
-    constructor() {
+    init {
+        registerLinker(BindingLinker())
         registerLinker(ParameterNameLinker())
         registerLinker(IdLinker())
     }
 
-    fun registerLinker(linker:Linker) {
+    private fun registerLinker(linker:Linker) {
         linkerList.add(linker)
     }
 
-    fun linkRequests(dependingRequest: ApiRequest, currentReqest: ApiRequest, abstractOperation: AbstractOperation):ApiRequest? {
+    fun linkRequestParameter(dependingRequest: ApiRequest, currentReqest: ApiRequest, inputNameInCurrentRequest : String, abstractOperation: AbstractOperation):ApiRequest? {
         for (linker in linkerList) {
-            var request = linker.link(dependingRequest, currentReqest, abstractOperation)
+            val request = linker.linkParameter(dependingRequest, currentReqest, inputNameInCurrentRequest, abstractOperation)
             if (request != null) {
-                log.debug(linker.javaClass.name + " matches.")
+                log.debug("        ${linker.javaClass.name} matches.")
+                return request
+            }
+        }
+        return null
+    }
+
+    fun linkRequestBody(dependingRequest: ApiRequest, currentReqest: ApiRequest, inputNameInCurrentRequest : String, abstractOperation: AbstractOperation):ApiRequest? {
+        for (linker in linkerList) {
+            val request = linker.linkBody(dependingRequest, currentReqest, inputNameInCurrentRequest, abstractOperation)
+            if (request != null) {
+                log.debug("        ${linker.javaClass.name} matches.")
                 return request
             }
         }

@@ -11,6 +11,7 @@ import io.ktor.http.*
 import io.ktor.http.content.TextContent
 import kotlinx.coroutines.runBlocking
 import linking.LinkController
+import linking.LinkerUtil
 import measurements.ApiRequestMeasurement
 import measurements.PatternMeasurement
 import measurements.Statisticshandler
@@ -42,35 +43,102 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
 
             var apiRequest = patternRequest.apiRequests[i]
             val abstractOperation = patternRequest.abstractPattern.sequence.get(i)
-            log.debug("" + patternRequest.id + ": Running " + abstractOperation.operation + " against " + apiRequest.path)
+            log.debug("  Request " + (i+1) + ": id=" + patternRequest.id + " operation=" + abstractOperation.operation + " path=" + apiRequest.path)
 
             val apiMeasurement = ApiRequestMeasurement(apiRequest.path, abstractOperation.operation, i)
             apiMeasurement.start = System.currentTimeMillis()
 
             if (abstractOperation.input != null) {
 
-                val dependingRequest = abstractValues[abstractOperation.input]
-                if (dependingRequest != null) {
-
-                    val adjustedRequest = getController().linkRequests(dependingRequest, apiRequest, abstractOperation)
-                    if (adjustedRequest == null) {
-                        log.error("Unable to link request but there should be a link")
+                //find depending requests
+                val dependentOperations = HashMap<String, ApiRequest>()
+                for (abstractInput in abstractOperation.input!!.split(",")) {
+                    val op = abstractValues[abstractInput]
+                    if (op != null) {
+                        dependentOperations[abstractInput] = op
                     } else {
-                        log.debug("Successfully linked request to previous one")
-                        apiRequest = adjustedRequest
+                        log.error("    No dependent operation for $abstractInput")
                     }
                 }
+
+                //find input(names) of current request
+                //find path inputs
+                val pathInputs = LinkerUtil().findPathInputs(apiRequest.path)
+                log.debug("    Operation requires ${pathInputs.size} path inputs:")
+                for (input in pathInputs) {
+                    log.debug("      - $input")
+                }
+
+                //find body inputs
+                var bodyInputs = ArrayList<String>()
+                val bodyOperationNames = ArrayList<String>()
+                bodyOperationNames.add("POST")
+                bodyOperationNames.add("PUT")
+                bodyOperationNames.add("PATCH")
+                if (bodyOperationNames.contains(apiRequest.method)) {
+                    //a create might require some inputs in required body
+                    if (apiRequest.body.isJsonObject) {
+                        bodyInputs = LinkerUtil().findIdKeysInJson(apiRequest.body.asJsonObject)
+                    }
+                }
+                log.debug("    Operation requires ${bodyInputs.size} body inputs:")
+                for (input in bodyInputs) {
+                    log.debug("      - $input")
+                }
+
+                val resolvedAbstractInputNames = ArrayList<String>()
+                //Resolve path inputs
+                for (pathInput in pathInputs) {
+                    var resolved = false
+                    for (dependency in dependentOperations.entries) {
+                        if (!resolved) {
+                            log.debug("    Try to resolve input $pathInput")
+                            val adjustedRequest = getController().linkRequestParameter(dependency.value, apiRequest, pathInput, abstractOperation)
+                            if (adjustedRequest != null) {
+                                log.debug("    Successfully linked request to previous one")
+                                apiRequest = adjustedRequest
+                                resolvedAbstractInputNames.add(pathInput)
+                                resolved = true
+                                break
+                            }
+                        }
+                    }
+                    if (!resolved) {
+                        log.error("    Unable to link request but there should be a link")
+                    }
+                }
+
+                //Resolve Body inputs
+                for (bodyInput in bodyInputs) {
+                    var resolved = false
+                    for (dependency in dependentOperations.entries) {
+                        log.debug("    Try to resolve input $bodyInput")
+                        val adjustedRequest = getController().linkRequestBody(dependency.value, apiRequest, bodyInput, abstractOperation)
+                        if (adjustedRequest != null) {
+                            log.debug("    Successfully linked request to previous one")
+                            apiRequest = adjustedRequest
+                            resolvedAbstractInputNames.add(bodyInput)
+                            resolved = true
+                            break
+                        }
+                    }
+                    if (!resolved) {
+                        log.error("    Unable to link request but there should be a link")
+                    }
+                }
+
+
             }
 
             try {
                 val client = HttpClient()
                 var url = apiRequest.path
-                log.debug("Path is " + url)
+                log.debug("  Path is $url")
                 url = buildUrl(url, apiRequest.parameter)
-                log.debug("URL is " + url)
+                log.debug("  URL is $url")
 
                 with(apiRequest.method) {
-                    log.info("${patternRequest.id}: Sending ${apiRequest.method} to $url, body: ${apiRequest.body}")
+                    log.info("  ${patternRequest.id}: Sending ${apiRequest.method} to $url, body: ${apiRequest.body}")
                     when {
                         equals("POST") -> {
                             runBlocking {
@@ -89,7 +157,7 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
                                     }
                                     if (apiRequest.headers != null && apiRequest.headers.isNotEmpty()) {
                                         for (h in apiRequest.headers) {
-                                            log.debug("Add header: ${h.first}, ${h.second}")
+                                            log.debug("  Add header: ${h.first}, ${h.second}")
                                             headers.append(h.first, h.second)
                                         }
                                     }
@@ -100,7 +168,7 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
                                 if (logtext.length > maxContentLen) {
                                     logtext = logtext.substring(0, maxContentLen-2) + "..."
                                 }
-                                log.info("${patternRequest.id}: Responded (${response.status.value}) $logtext")
+                                log.info("  ${patternRequest.id}: Responded (${response.status.value}) $logtext")
                                 apiRequest.response = responseText
                                 apiRequest.status = response.status.value
                                 client.close()
@@ -113,7 +181,7 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
                                     body = TextContent(apiRequest.body.toString(), contentType = ContentType.Application.Json)
                                     if (apiRequest.headers != null && apiRequest.headers.size > 0) {
                                         for (h in apiRequest.headers) {
-                                            log.debug("Add header: ${h.first}, ${h.second}")
+                                            log.debug("  Add header: ${h.first}, ${h.second}")
                                             headers.append(h.first, h.second)
                                         }
                                     }
@@ -125,7 +193,7 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
                                 if (logtext.length > maxContentLen) {
                                     logtext = logtext.substring(0, maxContentLen-2) + "..."
                                 }
-                                log.info("${patternRequest.id}: Responded (${response.status.value}) $logtext")
+                                log.info("  ${patternRequest.id}: Responded (${response.status.value}) $logtext")
                                 apiRequest.response = responseText
                                 apiRequest.status = response.status.value
                                 client.close()
@@ -138,7 +206,7 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
                                     body = TextContent(apiRequest.body.toString(), contentType = ContentType.Application.Json)
                                     if (apiRequest.headers != null && apiRequest.headers.isNotEmpty()) {
                                         for (h in apiRequest.headers) {
-                                            log.debug("Add header: ${h.first}, ${h.second}")
+                                            log.debug("  Add header: ${h.first}, ${h.second}")
                                             headers.append(h.first, h.second)
                                         }
                                     }
@@ -149,7 +217,7 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
                                 if (logtext.length > maxContentLen) {
                                     logtext = logtext.substring(0, maxContentLen-2) + "..."
                                 }
-                                log.info("${patternRequest.id}: Responded (${response.status.value}) $logtext")
+                                log.info("  ${patternRequest.id}: Responded (${response.status.value}) $logtext")
                                 apiRequest.response = responseText
                                 apiRequest.status = response.status.value
                                 client.close()
@@ -162,7 +230,7 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
                                     body = TextContent(apiRequest.body.toString(), contentType = ContentType.Application.Json)
                                     if (apiRequest.headers != null && apiRequest.headers.isNotEmpty()) {
                                         for (h in apiRequest.headers) {
-                                            log.debug("Add header: ${h.first}, ${h.second}")
+                                            log.debug("  Add header: ${h.first}, ${h.second}")
                                             headers.append(h.first, h.second)
                                         }
                                     }
@@ -173,7 +241,7 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
                                 if (logtext.length > maxContentLen) {
                                     logtext = logtext.substring(0, maxContentLen-2) + "..."
                                 }
-                                log.info("${patternRequest.id}: Responded (${response.status.value}) $logtext")
+                                log.info("  ${patternRequest.id}: Responded (${response.status.value}) $logtext")
                                 apiRequest.response = responseText
                                 apiRequest.status = response.status.value
                                 client.close()
@@ -186,7 +254,7 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
                                     body = TextContent(apiRequest.body.toString(), contentType = ContentType.Application.Json)
                                     if (apiRequest.headers != null && apiRequest.headers.isNotEmpty()) {
                                         for (h in apiRequest.headers) {
-                                            log.debug("Add header: ${h.first}, ${h.second}")
+                                            log.debug("  Add header: ${h.first}, ${h.second}")
                                             headers.append(h.first, h.second)
                                         }
                                     }
@@ -198,24 +266,24 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
                                 if (logtext.length > maxContentLen) {
                                     logtext = logtext.substring(0, maxContentLen-2) + "..."
                                 }
-                                log.info("${patternRequest.id}: Responded (${response.status.value}) $logtext")
+                                log.info("  ${patternRequest.id}: Responded (${response.status.value}) $logtext")
                                 apiRequest.response = responseText
                                 apiRequest.status = response.status.value
                                 client.close()
                             }
                         }
                         else -> {
-                            println("unhandled method: ${apiRequest.method}")
+                            println("  unhandled method: ${apiRequest.method}")
                         }
                     }
                 }
             } catch (e: Exception) {
-                log.error("Unable to process ApiRequest :(")
+                log.error("  Unable to process ApiRequest :(")
                 e.printStackTrace()
             }
 
             if (abstractOperation.output != null) {
-                abstractValues[abstractOperation.output] = apiRequest
+                abstractValues[abstractOperation.output!!] = apiRequest
             }
 
             apiMeasurement.end = System.currentTimeMillis()
@@ -223,7 +291,7 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
         }
         measurement.end = System.currentTimeMillis()
         statisticshandler.addMeasurement(measurement)
-        log.debug("Created Measurement: ${GsonBuilder().create().toJson(measurement)}")
+        log.debug("  Created Measurement: ${GsonBuilder().create().toJson(measurement)}")
         statisticshandler.addDone()
     }
 
