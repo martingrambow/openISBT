@@ -15,6 +15,8 @@ import kotlin.collections.ArrayList
 
 val  log: Logger = LoggerFactory.getLogger("BoxPlot")
 
+var sequenceHelperList = ArrayList<String>()
+
 /**
  * Sample calls:
  * -o -r results.json
@@ -26,25 +28,42 @@ fun main(args: Array<String>) = mainBody  {
         val measurements = loadMeasurements(readFile(measurementFile)) ?: throw InvalidArgumentException("Could not parse measurments")
         log.info("Imported Measurments")
 
+        //Trim path in all measurements
+        for (m in measurements) {
+            for (arm in m.apiRequestMeasurements) {
+                arm.path = trimPath(arm.path)
+            }
+        }
+
         log.info("Fill container...")
         val container = MeasurementContainer()
         for (m in measurements) {
-            val resource = m.resource
-            if (!container.isResource(resource)) {
-                container.addResource(resource)
+
+            //Determine sequence
+            var seq = m.patternName
+            for (arm in m.apiRequestMeasurements) {
+                seq += arm.path
+            }
+            if (!sequenceHelperList.contains(seq)) {
+                sequenceHelperList.add(seq)
+            }
+
+            val sequenceID = "Seq. No. ${sequenceHelperList.indexOf(seq)}"
+            if (!container.isSequence(sequenceID)) {
+                container.addSeqence(sequenceID)
             }
             val pattern = m.patternName
-            if (!container.isPattern(resource, pattern)) {
-                container.addPattern(resource, pattern)
+            if (!container.isPattern(sequenceID, pattern)) {
+                container.addPattern(sequenceID, pattern)
             }
             for (n in m.apiRequestMeasurements) {
                 val operation = n.abstractOperation
-                if (!container.isOperation(resource, pattern, operation)) {
-                    container.addOperation(resource, pattern, operation, n.index)
+                if (!container.isOperation(sequenceID, pattern, operation)) {
+                    container.addOperation(sequenceID, pattern, operation, n.index)
                 }
                 val method = n.path
-                if (!container.isMethod(resource, pattern, operation, method)) {
-                    container.addMethod(resource, pattern, operation, method, BoxPlotValues(getDurations(measurements, resource, pattern, operation, method)))
+                if (!container.isMethod(sequenceID, pattern, operation, method)) {
+                    container.addMethod(sequenceID, pattern, operation, method, BoxPlotValues(getDurations(measurements, sequenceID, pattern, operation, method)))
                 }
             }
         }
@@ -56,34 +75,34 @@ fun main(args: Array<String>) = mainBody  {
         var lastPattern = ""
         var lastOperation = ""
 
-        for (resource in container.measurements.keys) {
-            for (pattern in container.measurements.getValue(resource).keys) {
-                for (o in container.measurements.getValue(resource).getValue(pattern)) {
-                    if (pattern!= lastPattern || resource != lastResource) {
+        for (sequenceID in container.measurements.keys) {
+            for (pattern in container.measurements.getValue(sequenceID).keys) {
+                for (o in container.measurements.getValue(sequenceID).getValue(pattern)) {
+                    if (pattern!= lastPattern || sequenceID != lastResource) {
                         //Insert Total pattern line
-                        val total = BoxPlotValues(getDurations(measurements, resource, pattern, "total", ""))
-                        val totalrow = getTableRow(resource, pattern, "total", "", total)
+                        val total = BoxPlotValues(getDurations(measurements, sequenceID, pattern, "total", ""))
+                        val totalrow = getTableRow(sequenceID, pattern, "total", "", total)
                         fileContent += totalrow + "\n"
-                        lastResource = resource
+                        lastResource = sequenceID
                         lastPattern = pattern
                     }
                     val operation = o.first
                     if (o.second.entries.size > 1) {
                         //Multiple methods, insert total line
-                        val total = BoxPlotValues(getDurations(measurements, resource, pattern, operation, "total"))
-                        val cResource = if (resource != lastResource) resource else ""
+                        val total = BoxPlotValues(getDurations(measurements, sequenceID, pattern, operation, "total"))
+                        val cResource = if (sequenceID != lastResource) sequenceID else ""
                         val cPattern = if (pattern != lastPattern) pattern else ""
                         val totalrow = getTableRow(cResource, cPattern, operation, "total", total)
                         fileContent += totalrow + "\n"
                         lastOperation = operation
                     }
                     for (method in o.second.entries) {
-                        val cResource = if (resource != lastResource) resource else ""
+                        val cResource = if (sequenceID != lastResource) sequenceID else ""
                         val cPattern = if (pattern != lastPattern) pattern else ""
                         val cOperation = if (operation != lastOperation) operation else ""
                         val cMethod = method.key
                         fileContent += getTableRow(cResource, cPattern, cOperation, cMethod, method.value) + "\n"
-                        lastResource = resource
+                        lastResource = sequenceID
                         lastPattern = pattern
                         lastOperation = operation
                     }
@@ -100,13 +119,25 @@ fun main(args: Array<String>) = mainBody  {
     }
 }
 
-fun getDurations(measurements: Array<PatternMeasurement>, resource : String, pattern:String, operation:String, method:String) : Array<Int> {
+fun getDurations(measurements: Array<PatternMeasurement>, sequenceID : String, pattern:String, operation:String, method:String) : Array<Int> {
     val values: ArrayList<Int> = ArrayList()
 
-    log.debug("Call with: $resource, $pattern, $operation, $method")
+    log.debug("Call with: $sequenceID, $pattern, $operation, $method")
 
     for (m in measurements) {
-        if (resource == m.resource) {
+
+        //Determine sequence
+        var seq = m.patternName
+        for (arm in m.apiRequestMeasurements) {
+            seq += arm.path
+        }
+        if (!sequenceHelperList.contains(seq)) {
+            sequenceHelperList.add(seq)
+        }
+        val seqNameForThisMeasurment = "Seq. No. ${sequenceHelperList.indexOf(seq)}"
+
+
+        if (sequenceID == seqNameForThisMeasurment) {
             if (pattern == m.patternName) {
                 if (operation == "total") {
                     values.add(getDuration(m.start, m.end))
@@ -127,7 +158,7 @@ fun getDurations(measurements: Array<PatternMeasurement>, resource : String, pat
         }
     }
 
-    if (values.size == 0) log.debug("EMPTY ARRAY FOR: $resource, $pattern, $operation, $method")
+    if (values.size == 0) log.debug("EMPTY ARRAY FOR: $sequenceID, $pattern, $operation, $method")
     return values.toTypedArray()
 }
 
@@ -139,7 +170,7 @@ fun getDuration(start : Long, end : Long) : Int{
 }
 
 fun getTableHeader() : String {
-    var header = "Resource,"
+    var header = "Sequence,"
     header += " Pattern,"
     header += " Operation,"
     header += " Path,"
@@ -164,4 +195,17 @@ fun getTableRow(resource: String, pattern: String, operation: String, method: St
     row += ", ${boxPlotValues.max}"
     row += ", ${boxPlotValues.size}"
     return row
+}
+
+private fun trimPath(path : String) : String {
+    //trim front
+    var tmp = path
+    if (tmp.startsWith("http://")) {
+        tmp = tmp.substring(7)
+    }
+
+    //Trim Server URL
+    val i = tmp.indexOf('/')
+    tmp = tmp.substring(i)
+    return tmp
 }
