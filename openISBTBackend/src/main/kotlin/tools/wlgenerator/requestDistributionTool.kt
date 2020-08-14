@@ -40,7 +40,7 @@ fun main(args: Array<String>) = mainBody  {
 
         val gson: Gson = GsonBuilder().create()
         File(workloadFileName).writeText(gson.toJson(workload))
-        log.info("Done. See workload in ${File(workloadFileName).absoluteFile}")
+        tools.requestdistribution.log.info("Done. See workload in ${File(workloadFileName).absoluteFile}")
 
         return@mainBody
     }
