@@ -1,12 +1,17 @@
 package measurement
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
 class MeasurementContainer {
+
+    val  log: Logger = LoggerFactory.getLogger("MeasurmentContainer")
 
     // pattern -> sequence -> operation -> method -> Boxplot
     var measurements: MutableMap<String, //pattern ->
-            MutableMap<String, // sequence ->
+            MutableMap<String, // sequenceID ->
                     ArrayList<Pair<String, //operation ->
-                            MutableMap<String, BoxPlotValues>>>>> = HashMap() //method -> Boxplot
+                            MutableMap<String, BoxPlotValues>>>>> = HashMap() //path -> Boxplot
 
     fun isPattern(pattern: String): Boolean {
         return measurements.contains(pattern)
@@ -16,17 +21,18 @@ class MeasurementContainer {
         measurements[pattern] = HashMap()
     }
 
-    fun isSequence(sequenceID: String, pattern: String): Boolean {
+    fun isSequence(pattern: String, sequenceID: String): Boolean {
         return measurements.getValue(pattern).containsKey(sequenceID)
     }
 
-    fun addSeqence(sequence: String, pattern: String) {
+    fun addSeqence(pattern: String, sequence: String) {
         measurements.getValue(pattern)[sequence] = ArrayList()
     }
 
 
-    fun isOperation(pattern: String, sequence: String, operation: String): Boolean {
-        for (op in measurements.getValue(pattern).getValue(sequence)) {
+    fun isOperation(pattern: String, sequence: String, operation: String, index: Int): Boolean {
+        if (measurements.getValue(pattern).getValue(sequence).size > index) {
+            val op = (measurements.getValue(pattern).getValue(sequence)[index])
             if (op.first == operation) {
                 return true
             }
@@ -36,26 +42,29 @@ class MeasurementContainer {
 
     fun addOperation(pattern: String, sequence: String, operation: String, index: Int) {
         val operations = measurements.getValue(pattern).getValue(sequence)
+        //create empty Pairs if previous measurements are not added to the list until this point
         while (operations.size < index + 1) operations.add(Pair("bla", HashMap()))
         operations[index] = Pair(operation, HashMap())
     }
 
-    fun isMethod(pattern: String, sequence: String, operation: String, method: String): Boolean {
-        val operations = measurements.getValue(pattern).getValue(sequence)
-        for (o in operations) {
-            if (o.first == operation) {
-                return o.second.containsKey(method)
+    fun isPath(pattern: String, sequence: String, operation: String, index: Int, path: String): Boolean {
+        if (measurements.getValue(pattern).getValue(sequence).size > index) {
+            val op = (measurements.getValue(pattern).getValue(sequence)[index])
+            if (op.first == operation) {
+                return op.second.containsKey(path)
             }
         }
         return false
     }
 
-    fun addMethod(pattern: String, sequence: String, operation: String, method: String, boxPlotValues: BoxPlotValues) {
-        val operations = measurements.getValue(pattern).getValue(sequence)
-        for (o in operations) {
-            if (o.first == operation) {
-                o.second[method] = boxPlotValues
+    fun addPath(pattern: String, sequence: String, operation: String, index: Int, path: String, boxPlotValues: BoxPlotValues) {
+        if (measurements.getValue(pattern).getValue(sequence).size > index) {
+            val op = (measurements.getValue(pattern).getValue(sequence)[index])
+            if (op.first == operation) {
+                op.second[path] = boxPlotValues
+                return
             }
         }
+        log.error("Critical error while adding path, some boxplot values might not be added")
     }
 }
