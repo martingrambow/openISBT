@@ -87,6 +87,10 @@ task buildRunTool(type: Jar) {
     jarFactory(it, 'runner', 'tools.runner.RunTool')
 }
 
+task buildRequestDistributionTool(type: Jar) {
+    jarFactory(it, 'reqdistribution', 'tools.requestdistribution.RequestDistributionTool')
+}
+
 task buildBoxPlotTool(type: Jar) {
     jarFactory(it, 'boxplot', 'tools.evaluation.BoxPlot')
 }
