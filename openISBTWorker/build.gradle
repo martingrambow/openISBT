@@ -46,7 +46,7 @@ compileTestKotlin {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'MainKt'
+        attributes 'Main-Class': 'worker.MainKt'
     }
 
     from {

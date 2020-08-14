@@ -171,6 +171,7 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
                                 log.info("  ${patternRequest.id}: Responded (${response.status.value}) $logtext")
                                 apiRequest.response = responseText
                                 apiRequest.status = response.status.value
+                                response.close()
                                 client.close()
                             }
                         }
@@ -196,6 +197,7 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
                                 log.info("  ${patternRequest.id}: Responded (${response.status.value}) $logtext")
                                 apiRequest.response = responseText
                                 apiRequest.status = response.status.value
+                                response.close()
                                 client.close()
                             }
                         }
@@ -220,6 +222,7 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
                                 log.info("  ${patternRequest.id}: Responded (${response.status.value}) $logtext")
                                 apiRequest.response = responseText
                                 apiRequest.status = response.status.value
+                                response.close()
                                 client.close()
                             }
                         }
@@ -244,6 +247,7 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
                                 log.info("  ${patternRequest.id}: Responded (${response.status.value}) $logtext")
                                 apiRequest.response = responseText
                                 apiRequest.status = response.status.value
+                                response.close()
                                 client.close()
                             }
                         }
@@ -269,6 +273,7 @@ class WorkloadRunnable(var patternRequest: PatternRequest, val statisticshandler
                                 log.info("  ${patternRequest.id}: Responded (${response.status.value}) $logtext")
                                 apiRequest.response = responseText
                                 apiRequest.status = response.status.value
+                                response.close()
                                 client.close()
                             }
                         }
