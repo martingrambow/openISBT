@@ -1,0 +1,13 @@
+Pattern, Sequence, Operation, Path, Min, Q1, Med, Q3, Max, n
+CRE1, 1, total, , 28, 34.0, 39.0, 47.0, 514, 500
+, , CREATE, /register, 3, 5.0, 5.0, 7.0, 393, 500
+, , CREATE, /cards, 4, 5.0, 5.0, 7.0, 42, 500
+, , CREATE, /addresses, 4, 5.0, 5.0, 7.0, 33, 500
+, , SCAN, /catalogue, 4, 5.0, 6.0, 7.0, 23, 500
+, , CREATE, /carts/{customerId}/items, 10, 12.0, 14.0, 18.0, 50, 500
+CRE1, 2, total, , 27, 34.0, 39.0, 45.0, 526, 500
+, , CREATE, /register, 3, 5.0, 5.0, 7.0, 411, 500
+, , CREATE, /addresses, 4, 5.0, 5.0, 7.0, 35, 500
+, , CREATE, /cards, 3, 5.0, 5.0, 7.0, 47, 500
+, , SCAN, /catalogue, 3, 5.0, 5.0, 7.0, 27, 500
+, , CREATE, /carts/{customerId}/items, 10, 12.0, 14.0, 18.0, 51, 500
