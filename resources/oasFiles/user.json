@@ -410,7 +410,7 @@
   },
   "servers": [
     {
-      "url": "http://ec2-18-156-121-204.eu-central-1.compute.amazonaws.com:9006"
+      "url": "http://ec2-52-28-150-241.eu-central-1.compute.amazonaws.com:9006"
     }
   ],
   "components": {
