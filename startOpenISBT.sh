@@ -18,12 +18,6 @@ sudo mkdir /opt/gradle
 sudo unzip -u -d /opt/gradle gradle-4.10.3-bin.zip
 export PATH=$PATH:/opt/gradle/gradle-4.10.3/bin
 
-#Stop Backend
-backendID="$(ps -aux | grep openISBTBackend | grep -v grep | grep SCREEN | cut -f 3 -d " ")"
-ps -aux | grep openISBTBackend
-echo $backendID
-kill -9 $backendID
-
 #Stop Worker
 workerID="$(ps -aux | grep openISBTWorker | grep -v grep | grep SCREEN | cut -f 3 -d " ")"
 ps -aux | grep openISBTWorker
@@ -35,15 +29,10 @@ git reset --hard
 chmod +x *.sh
 chmod +x evaluationServices/*.sh
 
-#Build and Start Backend
+#Build and Start Tool(s), e.g., buildMatchingTool
 cd openISBTBackend
-gradle clean build jar
-screen -mdS "openISBTBackend" java -jar build/libs/openISBTBackend-1.0-SNAPSHOT.jar
-cd ..
-
-#Build and (re-)run Frontend
-cd openISBTFrontend
-gradle clean build run
+gradle clean buildMatchingTool
+java -jar build/libs/openISBTBackend-1.0-SNAPSHOT.jar
 cd ..
 
 #Build and run one Worker

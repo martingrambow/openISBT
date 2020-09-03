@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory
 class WorkloadGenerator {
 
     private var patternRequests = HashMap<Int, PatternRequest>()
-    var listener:ProgressListener? = null
     private var workload = ArrayList<PatternRequest>()
     private val log = LoggerFactory.getLogger("WorkloadGenerator")
 
@@ -38,9 +37,7 @@ class WorkloadGenerator {
                                 req.generateApiRequests(mapping.patternOperations)
                                 patternRequests[id] = req
                                 val current = patternRequests.size
-                                if (listener != null) {
-                                    listener?.setProgress((current * 100) / total)
-                                }
+                                val progress = (current * 100) / total
                             }
                         }
                     }

@@ -4,7 +4,7 @@ import com.google.gson.GsonBuilder
 import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
 import de.tuberlin.mcc.openapispecification.PathItemObject
 import patternconfiguration.AbstractOperation
-import mapping.simplemapping.PatternOperation
+import mapping.globalmapping.GPatternOperation
 import matching.MatchingUnit
 import matching.MatchingUtil
 import org.slf4j.Logger
@@ -19,7 +19,7 @@ class ReadMatchingUnit : MatchingUnit{
         return AbstractPatternOperation.READ.name
     }
 
-    override fun match(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path: String): PatternOperation? {
+    override fun match(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path: String): GPatternOperation? {
         if (pathItemObject.get != null) {
 
             //get could support READ or SCAN
@@ -37,7 +37,7 @@ class ReadMatchingUnit : MatchingUnit{
                 }
             }
             if (!listReturned && path.contains("{") && path.contains("}")) {
-                val operation = PatternOperation(abstractOperation, AbstractPatternOperation.READ)
+                val operation = GPatternOperation(abstractOperation, AbstractPatternOperation.READ)
                 operation.serviceName = spec.info.title
                 operation.path = spec.servers[0].url + path
 

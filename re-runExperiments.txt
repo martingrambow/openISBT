@@ -1,0 +1,23 @@
+Preload
+1. Set SUT URL in OpenAPI files (carts, user, and catalogue service)
+2. Adjust total pattern request size in SockShopLoad (to 1000)
+3. Run Matching tool for "matchingload" workload
+4. Run RequestDistribution for matching and disable 2 sequences
+5. run faker server
+6. Run Workload generation for adjusted matching
+7. Start two worker nodes
+8. Run experiment with 5 threads per worker
+9. Check customer service, 1000 customers created?
+10. Done
+
+
+Run Experiment
+1. Check URLs OpenAPI files
+2. Check pattern request number in SockShopPattern.json
+3. Run MatchingTool
+4. Check request distribution (250 per pattern)
+5. Ensure faker server is still running
+6. Generate workload
+7. Restart Worker Nodes (to seperate the logs)
+8. Run Experiment
+9. Done

@@ -15,7 +15,7 @@ val  log = LoggerFactory.getLogger("MatchingTool")!!
 
 /**
  * Sample calls:
- * -o -s resources/oasFiles/sockshop.json -d resources/patternConfigs/experiment2.json -e /cards
+ * -o -s resources/oasFiles/sockshop.json -d resources/patternConfigs/experiment2.json
  */
 
 fun main(args: Array<String>) = mainBody  {
@@ -29,8 +29,11 @@ fun main(args: Array<String>) = mainBody  {
         val config: PatternConfiguration = loadPatternConfig(readFile(workloadDefinitionFile)) ?: throw InvalidArgumentException("Could not parse workload definition")
         mapper.setPatternConfiguration(config)
 
-        val links = loadServiceLinksFile(readFile(serviceLinksFile)) ?: throw InvalidArgumentException("Could not parse service links")
-        mapper.setServiceLinks(links)
+        if (serviceLinksFile.name != "none") {
+            val links = loadServiceLinksFile(readFile(serviceLinksFile))
+                    ?: throw InvalidArgumentException("Could not parse service links")
+            mapper.setServiceLinks(links)
+        }
 
         if (!overwrite && mappingFile.exists()) {
             throw InvalidArgumentException("Would overwrite mapping file, rename or use -o flag")

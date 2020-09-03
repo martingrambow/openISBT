@@ -1,12 +1,11 @@
 package matching.units
 
 import com.google.gson.GsonBuilder
-import com.google.gson.JsonElement
 import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
 import de.tuberlin.mcc.openapispecification.PathItemObject
 import de.tuberlin.mcc.openapispecification.SchemaObject
 import patternconfiguration.AbstractOperation
-import mapping.simplemapping.PatternOperation
+import mapping.globalmapping.GPatternOperation
 import matching.MatchingUnit
 import matching.MatchingUtil
 import matching.ReferenceResolver
@@ -22,7 +21,7 @@ class ScanMatchingUnit : MatchingUnit{
         return AbstractPatternOperation.SCAN.name
     }
 
-    override fun match(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path: String): PatternOperation? {
+    override fun match(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path: String): GPatternOperation? {
         if (pathItemObject.get != null) {
             //get could support READ or SCAN
             //If an array of items is returned, SCAN is supported
@@ -74,7 +73,7 @@ class ScanMatchingUnit : MatchingUnit{
                 }
             }
             if (listReturned) {
-                val operation = PatternOperation(abstractOperation, AbstractPatternOperation.SCAN)
+                val operation = GPatternOperation(abstractOperation, AbstractPatternOperation.SCAN)
                 operation.serviceName = spec.info.title
                 operation.path = spec.servers[0].url + path
 

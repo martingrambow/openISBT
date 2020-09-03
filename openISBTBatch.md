@@ -10,8 +10,8 @@ you're benchmarking the client and should start at least one more instance with 
 ## Setup
 
 ### SUT
-1. Setup your REST service and note the url.
-2. Find or generate the openAPI3.0 description file.
+1. Setup your REST microservice application and note the url(s).
+2. Find or generate the openAPI3.0 description file, and adjust the service url(s).
 
 ### OpenISBT
 0. Connect to (EC2) instance
@@ -20,21 +20,34 @@ you're benchmarking the client and should start at least one more instance with 
 3. cd to openISBT: `cd openISBT`
 4. cd to openISBTBackend `cd openISBTBackend`
 5. Build tools
-   1. Matching Tool: `gradle buildMatchingTool`
-   2. Workload Generator: `gradle buildWorkloadGenerator`
-   3. Run Tool: `gradle buildRunTool`
-   4. Box Plot Values: `gradle buildBoxPlotTool`
+   * Matching Tool: `gradle buildMatchingTool`
+   * Request Distribution Tool: `gradle buildRequestDistributionTool `
+   * Workload Generator: `gradle buildWorkloadGenerator`
+   * Run Tool: `gradle buildRunTool`
+   * Box Plot Values: `gradle buildBoxPlotTool`
 6. check jars in build/libs
 
 ----
 
 ## Benchmark 
+_Setup:_
 
-1. Match pattern and concrete service
+1. Define service links (opt., if you want to benchmark a whole application)
 
-e.g., `java -jar matchingTool[...].jar -s resources/oasFiles/sockshop.json -d resources/patternConfigs/experiment2.json -e /cards`
+see resources/links/sockshopLinks.json and adapt for your application
+
+
+_Experiment:_
+1. Match pattern and service/application
+
+e.g., `java -jar matchingTool[...].jar 
+-s resources/oasFiles/user.json -s resources/oasFiles/carts.json -s ... 
+-d resources/patternConfigs/sockshopPatterns.json
+-l resources/links/sockshopLinks.json
+`
 - -s specifies openAPI file
 - -d pattern definition file
+- -l service links (to benchmark a complete application)
 - -m output mapping file (default: mapping.json)
 - -e exclude one/multiple paths from mapping
 - -o overwrites existing mapping file

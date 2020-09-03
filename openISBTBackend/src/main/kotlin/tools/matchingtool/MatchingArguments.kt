@@ -35,9 +35,12 @@ class MatchingArguments(parser: ArgParser) {
     val serviceLinksFile: File by parser.storing(
             "-l", "--serviceLinks",
             help = "Input: service links file") { File(this) }
+            .default(File("none"))
             .addValidator {
-                if (!checkFile(serviceLinksFile)) {
-                    throw InvalidArgumentException("Invalid workload definition")
+                if (serviceLinksFile.name != "none") {
+                    if (!checkFile(serviceLinksFile)) {
+                        throw InvalidArgumentException("Invalid workload definition")
+                    }
                 }
             }
 

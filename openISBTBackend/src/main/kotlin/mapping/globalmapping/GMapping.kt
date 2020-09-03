@@ -2,7 +2,6 @@ package mapping.globalmapping
 
 import com.google.gson.JsonObject
 import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
-import mapping.simplemapping.PatternOperation
 import matching.MatchController
 import matching.link.ServiceLinkObject
 import matching.units.*
@@ -13,7 +12,7 @@ import patternconfiguration.AbstractPatternOperation
 class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val serviceLinks: ArrayList<ServiceLinkObject>) {
 
     // Sequence of concrete operations
-    var patternOperations:ArrayList<PatternOperation> = ArrayList()
+    var patternOperations:ArrayList<GPatternOperation> = ArrayList()
     //number of requests which should be sent according to this mapping
     var numberOfRequests:Int = 0
     //true, if the user wants to benchmark this mapping; (true per default, can be changed in GUI)
@@ -119,7 +118,7 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
                         //Start resolving inputs
                         if (!resolved && !abort && operation.input != null) {
                             //find dependent operations (abstract input name -> dependent operation)
-                            val dependentOperations = HashMap<String, PatternOperation>()
+                            val dependentOperations = HashMap<String, GPatternOperation>()
                             for (abstractInput in operation.input.split(",")) {
                                 val op = findDependentOperation(abstractInput)
                                 if (op != null) {
@@ -214,7 +213,7 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
                             //Deep copy this object
                             val newMapping = GMapping(openAPiSpecs, serviceLinks)
                             @Suppress("UNCHECKED_CAST")
-                            newMapping.patternOperations = this.patternOperations.clone() as ArrayList<PatternOperation>
+                            newMapping.patternOperations = this.patternOperations.clone() as ArrayList<GPatternOperation>
                             //Add new found operation to deep copy
                             newMapping.patternOperations.add(patternOperation)
                             expandedMappings.add(newMapping)
@@ -281,7 +280,7 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
         return keys
     }
 
-    private fun isInputNameInDependentOperation(inputName : String, involvedServices : ArrayList<String>, dependentOperation: PatternOperation, patternOperation: PatternOperation) : Boolean {
+    private fun isInputNameInDependentOperation(inputName : String, involvedServices : ArrayList<String>, dependentOperation: GPatternOperation, patternOperation: GPatternOperation) : Boolean {
         if (comparePathLevels(dependentOperation.path, patternOperation.path) > 0) {
             //same domain, go on
             log.debug("        same path prefix")
@@ -345,8 +344,8 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
         return tmp
     }
 
-    private fun findDependentOperation(inputName: String) : PatternOperation? {
-        var dependentOperation: PatternOperation? = null
+    private fun findDependentOperation(inputName: String) : GPatternOperation? {
+        var dependentOperation: GPatternOperation? = null
         for (i in patternOperations.size - 1 downTo 0) {
             if (dependentOperation == null && inputName == patternOperations[i].abstractOperation.output) {
                 dependentOperation = patternOperations[i]
@@ -358,7 +357,7 @@ class GMapping(private val openAPiSpecs: Array<OpenAPISPecifcation>, private val
     }
 
 
-    private fun resolveManualLink(involvedServices : ArrayList<String>, inputName:String, dependentOperation: PatternOperation, patternOperation: PatternOperation) : ServiceLinkObject? {
+    private fun resolveManualLink(involvedServices : ArrayList<String>, inputName:String, dependentOperation: GPatternOperation, patternOperation: GPatternOperation) : ServiceLinkObject? {
         var dependentPath: String? = null
         for (spec2 in openAPiSpecs) {
             if (involvedServices.contains(spec2.info.title)) {

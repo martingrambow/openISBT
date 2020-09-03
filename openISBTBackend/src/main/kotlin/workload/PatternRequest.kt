@@ -3,7 +3,7 @@ package workload
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonParser
 import patternconfiguration.AbstractPattern
-import mapping.simplemapping.PatternOperation
+import mapping.globalmapping.GPatternOperation
 import org.slf4j.LoggerFactory
 import patternconfiguration.AbstractPatternOperation
 
@@ -13,7 +13,7 @@ class PatternRequest(var id: Int, var abstractPattern: AbstractPattern) {
 
     var apiRequests : Array<ApiRequest> = arrayOf()
 
-    suspend fun generateApiRequests(operationSequence: List<PatternOperation>) {
+    suspend fun generateApiRequests(operationSequence: List<GPatternOperation>) {
 
         val requestList = ArrayList<ApiRequest>()
 

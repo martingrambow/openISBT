@@ -4,7 +4,7 @@ import com.google.gson.GsonBuilder
 import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
 import de.tuberlin.mcc.openapispecification.PathItemObject
 import patternconfiguration.AbstractOperation
-import mapping.simplemapping.PatternOperation
+import mapping.globalmapping.GPatternOperation
 import matching.MatchingUnit
 import matching.MatchingUtil
 import org.slf4j.Logger
@@ -19,9 +19,9 @@ class UpdateMatchingUnit : MatchingUnit{
         return AbstractPatternOperation.UPDATE.name
     }
 
-    override fun match(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path: String): PatternOperation? {
+    override fun match(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path: String): GPatternOperation? {
         if (pathItemObject.put != null) {
-            val operation = PatternOperation(abstractOperation, AbstractPatternOperation.UPDATE)
+            val operation = GPatternOperation(abstractOperation, AbstractPatternOperation.UPDATE)
             operation.serviceName = spec.info.title
             operation.path = spec.servers[0].url + path
 

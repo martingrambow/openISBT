@@ -3,7 +3,7 @@ package matching.units
 import com.google.gson.GsonBuilder
 import de.tuberlin.mcc.openapispecification.*
 import patternconfiguration.AbstractOperation
-import mapping.simplemapping.PatternOperation
+import mapping.globalmapping.GPatternOperation
 import matching.MatchingUnit
 import matching.MatchingUtil
 import org.slf4j.Logger
@@ -18,9 +18,9 @@ class CreateMatchingUnit : MatchingUnit{
         return AbstractPatternOperation.CREATE.name
     }
 
-    override fun match(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path: String): PatternOperation? {
+    override fun match(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path: String): GPatternOperation? {
         if (pathItemObject.post != null) {
-            val operation = PatternOperation(abstractOperation, AbstractPatternOperation.CREATE)
+            val operation = GPatternOperation(abstractOperation, AbstractPatternOperation.CREATE)
             operation.serviceName = spec.info.title
             operation.path = spec.servers[0].url + path
 

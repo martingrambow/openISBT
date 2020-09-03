@@ -3,7 +3,7 @@ package matching
 import de.tuberlin.mcc.openapispecification.OpenAPISPecifcation
 import de.tuberlin.mcc.openapispecification.PathItemObject
 import patternconfiguration.AbstractOperation
-import mapping.simplemapping.PatternOperation
+import mapping.globalmapping.GPatternOperation
 import matching.units.ScanMatchingUnit
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -19,11 +19,11 @@ class MatchController {
         matchUnitList.add(unit)
     }
 
-    fun matchPatternOperation(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path:String): PatternOperation? {
+    fun matchPatternOperation(pathItemObject: PathItemObject, abstractOperation: AbstractOperation, spec: OpenAPISPecifcation, path:String): GPatternOperation? {
         for (unit in matchUnitList) {
             if (abstractOperation.operation == unit.getSupportedOperation()) {
                 log.debug("Check " + abstractOperation.operation + " for path " + path + " ...")
-                val operation: PatternOperation? = unit.match(pathItemObject, abstractOperation, spec, path)
+                val operation: GPatternOperation? = unit.match(pathItemObject, abstractOperation, spec, path)
                 if (operation != null) {
                     //successfully matched
                     log.debug(unit.javaClass.name + " matches " + path)
